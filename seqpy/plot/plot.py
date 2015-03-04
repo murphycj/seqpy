@@ -117,34 +117,58 @@ def barplot(data, gene_name, prefix, samples):
     plt.close()
 
 
-def pca(data, color=False):
+def pca(data, groups=[], prefix='', number_components=1):
     """
     Perform PCA
+
+
+
     """
 
-    samples = data.columns
+    assert prefix!='','Supply prefix'
 
-    if color:
-        mouse_number, mouse_number_key = get_mouse_numbers(samples)
-        total = float(len(list(set(mouse_number))))
-        cm = get_cmap('Paired')
-        colors = []
-        for i in range(0, len(mouse_number)):
-            colors.append(cm(mouse_number[i] / total))
-            #colors = np.array(colors)
-    else:
-        colors = ['b']*len(samples)
+    group_set = list(set(groups))
+    group_set = zip(group_set, range(0, len(group_set)))
+    group_set = dict(group_set)
+    total = float(len(group_set))
+    colors = []
+    cm = get_cmap('Paired')
+    for i in range(0, len(groups)):
+        temp = group_set[groups[i]]
+        colors.append(cm(temp / total))
 
-    pca = PCA(data)
+    data  = data.values
 
-    fig = plt.figure()
-    fig.set_size_inches(12, 12)
-    plt.scatter(pca.Y[:, 0], pca.Y[:, 1], c=colors, marker='o', edgecolor='none', s=40)
-    plt.xlabel('PC1')
-    plt.ylabel('PC2')
-    plt.savefig('pca1-2.png')
-    plt.clf()
-    plt.close()
+    pca = PCA(data[0:data.shape[1]].T)
+
+    for p1 in range(0, number_components):
+        for p2 in range(p1, number_components):
+            if p1==p2:
+                continue
+
+            fig = plt.figure()
+            fig.set_size_inches(12, 12)
+            plots = []
+            legends = []
+            n = 0
+            for i in group_set.keys():
+                indices = []
+                for j in range(0, len(groups)):
+                    if groups[j] == i:
+                        indices.append(j)
+                plots.append(plt.scatter(pca.Y[indices, p1], pca.Y[indices, p2], c=colors[n], marker='o', edgecolor='none', s=60))
+                legends.append(i)
+                n += 1
+
+            plt.xlabel('PC' + str(p1 + 1))
+            plt.ylabel('PC' + str(p2 + 1))
+            plt.legend(plots,legends,scatterpoints=1)
+            plt.savefig(prefix + 'pc' + str(p1+1) + '-pc' + str(p2+1)+ '.png')
+            plt.clf()
+            plt.close()
+
+    return pca
+
 
 def expression_heatmap(data=[], filename = '', distance='euclidean', samples=[], fontsize=7):
     """
