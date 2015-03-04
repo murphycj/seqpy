@@ -117,7 +117,7 @@ def barplot(data, gene_name, prefix, samples):
     plt.close()
 
 
-def pca(data, groups=[], prefix='', number_components=1):
+def pca(data, groups=[], prefix='', number_components=1, n=-1):
     """
     Perform PCA
 
@@ -139,7 +139,10 @@ def pca(data, groups=[], prefix='', number_components=1):
 
     data  = data.values
 
-    pca = PCA(data[0:data.shape[1]].T)
+    if n == -1:
+        n = data.shape[1]
+
+    pca = PCA(data[0:n].T)
 
     for p1 in range(0, number_components):
         for p2 in range(p1, number_components):
@@ -159,7 +162,7 @@ def pca(data, groups=[], prefix='', number_components=1):
                 plots.append(plt.scatter(pca.Y[indices, p1], pca.Y[indices, p2], c=colors[n], marker='o', edgecolor='none', s=60))
                 legends.append(i)
                 n += 1
-
+            
             plt.xlabel('PC' + str(p1 + 1))
             plt.ylabel('PC' + str(p2 + 1))
             plt.legend(plots,legends,scatterpoints=1)
