@@ -1,54 +1,54 @@
-import numpy as np
 import argparse
 import os
 import pandas
-import mouse2human
-
 
 CHIP = 'gseaftp.broadinstitute.org://pub/gsea/annotations/GENE_SYMBOL.chip'
 MSIGDB_ROOT = '/Users/charlesmurphy/Desktop/Research/data/msigdb/'
 
-def create_rnk(args,data):
+def create_gct(args,fpkm):
 
-    gct_file = os.path.abspath(args.outDir) + '/' + args.outDir + '.rnk'
+    gct_file = os.path.abspath(args.outDir) + '/' + args.outDir + '.gct'
 
-    if not args.human:
-        c = mouse2human.Conversion()
+    samples = fpkm.columns.tolist()
+    genes = fpkm.index.tolist()
+    descriptions = ['NA']*fpkm.shape[0]
+    temp = ['NAME','DESCRIPTION'] + samples
 
-        data = c.convert_mouse2human(data=data,remove_duplicates=True)
+    gct = pandas.DataFrame(columns=temp, index=fpkm.index)
+    gct['NAME'] = genes
+    gct['DESCRIPTION'] = descriptions
+    for i in samples:
+      gct[i] = fpkm[i]
+    gct.to_csv(os.path.abspath(args.outDir) + '/temp.txt',sep='\t',index=False)
 
-    result_data = pandas.DataFrame(columns=['name','rank'],index=data.index)
+    gct = open(os.path.abspath(args.outDir) + '/temp.txt', 'r').read()
+    fout = open(gct_file, 'w')
+    fout.write('#1.2\n')
+    fout.write(str(fpkm.shape[0]) + '\t' + str(len(samples)) + '\n')
+    fout.write(gct)
+    fout.close()
+    os.system('rm ' + os.path.abspath(args.outDir) + '/temp.txt')
 
+    return gct_file
 
-    if args.limmavoom:
-        if args.ranking == 'statistic':
-            result_data['name'] = data.index
-            result_data['rank'] = data['t'].tolist()
-            result_data = result_data[~pandas.isnull(result_data['name'])]
-            result_data = result_data[~pandas.isnull(result_data['rank'])]
-        elif args.ranking == 'logpvalFC':
-            result_data['name'] = data.index
-            result_data['rank'] = (-np.log2(data['P.Value'])*data['logFC']).tolist()
-            result_data = result_data[~pandas.isnull(result_data['name'])]
-            result_data = result_data[~pandas.isnull(result_data['rank'])]
-    else:
-        if args.ranking == 'statistic':
-            result_data['name'] = data.index
-            result_data['rank'] = data['stat'].tolist()
-            result_data = result_data[~pandas.isnull(result_data['name'])]
-            result_data = result_data[~pandas.isnull(result_data['rank'])]
-        elif args.ranking == 'logpvalFC':
-            result_data['name'] = data.index
-            result_data['rank'] = (-np.log2(data['pvalue'])*data['log2FoldChange']).tolist()
-            result_data = result_data[~pandas.isnull(result_data['name'])]
-            result_data = result_data[~pandas.isnull(result_data['rank'])]
+def create_cls(args, fpkm, group1, group2,phenotypes):
 
-    rnk_file = args.outDir + '/' + args.outDir + '_' + args.msigdb.replace('.','_') + '.rnk'
-    result_data.to_csv(rnk_file,index=False,header=False, sep='\t')
+    cls_file = os.path.abspath(args.outDir) + '/' + args.outDir + '.cls'
 
-    return rnk_file
+    classes = [phenotypes[0],phenotypes[1]]
+    class_labels = [phenotypes[0]]*len(group1) + [phenotypes[1]]*len(group2)
 
-def write_script(args,data,rnk_file):
+    fout = open(cls_file, 'w')
+    fout.write(str(len(class_labels)) + '\t' + str(len(classes)) + '\t1\n')
+    fout.write('#\t' + '\t'.join(classes) + '\n' + class_labels[0])
+    for i in range(1, len(class_labels)):
+      fout.write('\t' + class_labels[i])
+    fout.write('\n')
+    fout.close()
+
+    return cls_file
+
+def write_script(args,fpkm,gct_file,cls_file,phenotypes):
 
 
     #write script
@@ -75,7 +75,7 @@ def write_script(args,data,rnk_file):
         fout.write('rsync ' + cls_file + ' $TMPDIR\n')
         fout.write('cd $TMPDIR\n')
         fout.write(
-            'java -cp' + os.path.abspath(args.gsea) + '-Xmx2048m xtools.gsea.GseaPreranked ' + \
+            'java -cp' + os.path.abspath(args.gsea) + '-Xmx2048m xtools.gsea.Gsea ' + \
             '-res ' + os.path.split(gct_file)[1] + ' ' + \
             '-cls ' + os.path.split(cls_file)[1] + '#' + phenotypes[0] + '_versus_' + phenotypes[1] + \
             '-gmx ' + MSIGDB_ROOT + args.msigdb + \
@@ -94,7 +94,7 @@ def write_script(args,data,rnk_file):
             '-make_sets true ' + \
             '-median false ' + \
             '-num 100 ' + \
-            '-plot_top_x 40 ' + \
+            '-plot_top_x 20 ' + \
             '-rnd_seed timestamp ' + \
             '-save_rnd_lists false ' + \
             '-set_max 500 ' + \
@@ -112,23 +112,37 @@ def write_script(args,data,rnk_file):
         filename = os.path.abspath(args.outDir) + '/' + args.outDir + '-' + args.msigdb + '.sh'
         fout = open(filename,'w')
         fout.write('#! /bin/bash -l\n')
+        fout.write('# fpkm : ' + args.fpkm + '\n')
         fout.write('# GSEA : '  + os.path.abspath(args.gsea) + '\n')
+        fout.write('# group1 : ' + args.group1 + '\n')
+        fout.write('# group2 : ' + args.group2 + '\n')
         fout.write('# msigdb : ' + args.msigdb + '\n')
+        fout.write('# fpkmThreshold : ' + str(args.fpkmThreshold) + '\n')
+        fout.write('# sampleNonZero : ' + str(args.sampleNonZero) + '\n')
         fout.write('# outDir : ' + args.outDir + '\n\n')
         fout.write(
-            'java -cp ' + os.path.abspath(args.gsea) + ' -Xmx2048m xtools.gsea.GseaPreranked \\\n' + \
-            ' -rnk ' + rnk_file + ' \\\n' + \
+            'java -cp ' + os.path.abspath(args.gsea) + ' -Xmx2048m xtools.gsea.Gsea \\\n' + \
+            ' -res ' + gct_file + ' \\\n' + \
+            ' -cls ' + cls_file + '#' + phenotypes[0] + '_versus_' + phenotypes[1] + ' \\\n' + \
             ' -gmx ' + MSIGDB_ROOT + args.msigdb + ' \\\n' + \
             ' -collapse false \\\n' + \
             ' -mode Max_probe \\\n' + \
             ' -norm meandiv \\\n' + \
             ' -nperm 1000 \\\n' + \
+            ' -permute phenotype \\\n' + \
+            ' -rnd_type no_balance \\\n' + \
             ' -scoring_scheme weighted \\\n' + \
             ' -rpt_label ' + args.outDir + '_' + args.msigdb + ' \\\n'\
+            ' -metric Signal2Noise \\\n' + \
+            ' -sort real \\\n' + \
+            ' -order descending \\\n' + \
             ' -include_only_symbols true \\\n' + \
             ' -make_sets true \\\n' + \
-            ' -plot_top_x 40 \\\n' + \
+            ' -median false \\\n' + \
+            ' -num 100 \\\n' + \
+            ' -plot_top_x 20 \\\n' + \
             ' -rnd_seed timestamp \\\n' + \
+            ' -save_rnd_lists false \\\n' + \
             ' -set_max 500 \\\n' + \
             ' -set_min 15 \\\n' + \
             ' -zip_report true \\\n' + \
@@ -140,28 +154,44 @@ def write_script(args,data,rnk_file):
 
 def main(args):
 
+    group1 = args.group1.split(',')
+    group2 = args.group2.split(',')
+
+    phenotypes = args.phenotypes.split(',')
+    assert len(phenotypes)==2, 'supply only two phenotypes'
+
     if args.cluster:
         MSIGDB_ROOT = '/home/chm2059/chm2059/data/msigdb/'
 
-    data = pandas.read_csv(args.deseq2, header=0, index_col=0)
-    data = data.dropna()
+    fpkm = pandas.read_csv(args.fpkm,index_col=0)
+
+    for i in group1 + group2:
+        assert i in fpkm.columns, i + " not in fpkm"
+
+    fpkm = fpkm[group1 + group2]
+    fpkm[fpkm<=args.fpkmThreshold]=0
+    fpkm = fpkm[fpkm.sum(axis=1)>=args.sampleNonZero]
 
     if not os.path.exists(args.outDir):
         os.mkdir(args.outDir)
 
-    rnk_file = create_rnk(args=args,data=data)
+    gct_file = create_gct(args=args,fpkm=fpkm)
 
-    write_script(args=args,data=data,rnk_file=rnk_file)
+    cls_file = create_cls(args=args,fpkm=fpkm, group1=group1, group2=group2, phenotypes=phenotypes)
+
+    write_script(args=args,fpkm=fpkm,gct_file=gct_file,cls_file=cls_file, phenotypes=phenotypes)
 
 
 parser = argparse.ArgumentParser(description='Creates GSEA scripts to run')
-parser.add_argument('--deseq2',type=str,help='csv file containing deseq2 results',required=True)
+parser.add_argument('--fpkm',type=str,help='csv file containing FPKM values (using human gene symbols)',required=True)
 parser.add_argument('--gsea',type=str,help='Path to GSEA JAR',required=True)
+parser.add_argument('--group1',type=str,help='Comma separated group 1 samples',required=True)
+parser.add_argument('--group2',type=str,help='Comma separated group 2 samples',required=True)
+parser.add_argument('--phenotypes',type=str,help='Comma separated name for the groups/phenotype (e.g. WT,MUT), same order and group1 and group2',required=True)
 parser.add_argument('--msigdb',type=str,help='The MSigDB to use (e.g. c2.cp.v5.0.symbols.gmt)',required=True)
+parser.add_argument('--fpkmThreshold',type=float,help='FPKM threshold',required=False,default=0.1)
+parser.add_argument('--sampleNonZero',type=int,help='Minimum number of samples with non-zeros expression (defualt 1)',required=False,default=1)
 parser.add_argument('--cluster',action='store_true',help='Write scripts for running as jobs on cluster (default False)',required=False, default=False)
-parser.add_argument('--ranking',type=str,help='Ranking statistic to use (statistic, logpvalFC)',default='statistic')
-parser.add_argument('--limmavoom',action='store_true',help='If results are from limmavoom')
-parser.add_argument('--human',action='store_true',help='If the gene symbols are human',default=False)
 parser.add_argument('--outDir',type=str,help='Output directory',required=True)
 args = parser.parse_args()
 

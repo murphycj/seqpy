@@ -1,3 +1,4 @@
+from crimson import fastqc
 import sys
 import pandas
 import numpy as np
@@ -5,7 +6,7 @@ import glob
 import os
 import argparse
 
-def get_fpkm(args):
+def main(args):
 
     results = {}
     genes = []
@@ -24,10 +25,8 @@ def get_fpkm(args):
 
         files = ''
         if not args.walk:
-            if args.genes:
-                files = glob.glob(f + '/genes.fpkm_tracking')
-            else:
-                files = glob.glob(f + '/isoforms.fpkm_tracking')
+
+            files = glob.glob(f + '/*stdin_fastqc.zip')
 
             if len(files)==0:
                 print "No file for " + sample
@@ -39,11 +38,7 @@ def get_fpkm(args):
 
             files = files[0]
         else:
-            pattern = ''
-            if args.genes:
-                pattern = 'genes.fpkm_tracking'
-            else:
-                pattern = 'isoforms.fpkm_tracking'
+            pattern = 'stdin_fastqc.zip'
 
             nf = 0
             for root, subdir, file in os.walk(f):
@@ -55,47 +50,30 @@ def get_fpkm(args):
                 sys.exit(1)
         if files == '':
             continue
+        os.system('unzip -o -q ' + os.path.abspath(files) + ' -d tmp-fastqc')
+        f = fastqc.parse('./tmp-fastqc/stdin_fastqc/fastqc_data.txt')
 
-        try:
-            d = pandas.read_table(files, sep='\t', index_col=0)
-        except:
-            print 'Could not read table'
-            import pdb; pdb.set_trace()
-
-        genes += d.index.tolist()
-        temp2 = pandas.DataFrame(d['FPKM'])
-        temp2['index'] = temp2.index
-        temp2.drop_duplicates(subset='index', take_last=True, inplace=True)
-        del temp2['index']
-        results[sample] = temp2
-        samples.append(sample)
-
-    genes = list(set(genes))
-    for s, d in results.items():
-        results[s] = d.ix[genes]
-
-    data = pandas.DataFrame(index = list(set(genes)), columns = samples)
-    data.values.fill(0.0)
-    for s, d in results.items():
-        data[s] = d
+        results[sample] = {
+            'Per base sequence quality':f['Per base sequence quality']['status'],
+            'Sequence Duplication Levels':f['Sequence Duplication Levels']['status'],
+            'Per sequence GC content':f['Per sequence GC content']['status'],
+            'Sequence Length Distribution':f['Sequence Length Distribution']['status'],
+            'Kmer Content':f['Kmer Content']['status'],
+            'Overrepresented sequences':f['Overrepresented sequences']['status'],
+            'Per base N content':f['Per base N content']['status'],
+            'Per sequence quality scores':f['Per sequence quality scores']['status']
+        }
+    data = pandas.DataFrame(results)
     data.to_csv(args.out)
+
+    os.system('rm -rf tmp-fastqc')
 
 
 parser = argparse.ArgumentParser(description='Aggregates the FPKM values from cufflinks output')
 parser.add_argument('--dir',type=str,help='Meta-directory where each sub-directory contains fpkm for each sample',required=True)
-parser.add_argument('--genes',action='store_true',help='Collate FPKM values for genes',required=False)
-parser.add_argument('--isoforms',action='store_true',help='Collate FPKM values for isoforms',required=False)
 parser.add_argument('--out',type=str,help='Output file name',required=True)
 parser.add_argument('--skip',nargs='*',help='Specific samples to skip',required=False,default=[])
 parser.add_argument('--walk',action='store_true',help='Recursively walk through the sample dirs to find the file (defaule false).',required=False)
 args = parser.parse_args()
 
-if not args.genes and not args.isoforms:
-    print "Specify either --genes or --isoforms"
-    sys.exit()
-
-if args.genes and args.isoforms:
-    print "Specify only --genes or --isoforms"
-    sys.exit()
-
-get_fpkm(args=args)
+main(args=args)
