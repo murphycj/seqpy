@@ -1,3 +1,8 @@
+"""
+This script combines and summarizes the FastQC result files
+
+"""
+
 from crimson import fastqc
 import sys
 import pandas
@@ -27,13 +32,14 @@ def main(args):
             'Per base N content':f['Per base N content']['status'],
             'Per sequence quality scores':f['Per sequence quality scores']['status']
         }
+        os.system('rm -rf tmp-fastqc')
     data = pandas.DataFrame(results)
     data.to_csv(args.out)
 
-parser = argparse.ArgumentParser(description='Aggregates the FPKM values from cufflinks output')
+parser = argparse.ArgumentParser(description='Aggregates the FastQC results')
 parser.add_argument('--out',type=str,help='Output file name',required=True)
-parser.add_argument('--files',type=str,required=True,nargs='+')
-parser.add_argument('--samples',type=str,required=True,nargs='+')
+parser.add_argument('--files',type=str,required=True,nargs='+',help='Space-delimited list of fusioncatcher output files.')
+parser.add_argument('--samples',type=str,required=True,nargs='+',help='Space-delimited list of sample names')
 args = parser.parse_args()
 
 main(args=args)
