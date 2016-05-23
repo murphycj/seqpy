@@ -38,7 +38,7 @@ def main(args):
 
 parser = argparse.ArgumentParser(description='Aggregates the FastQC results')
 parser.add_argument('--out',type=str,help='Output file name',required=True)
-parser.add_argument('--files',type=str,required=True,nargs='+',help='Space-delimited list of fusioncatcher output files.')
+parser.add_argument('--files',type=str,required=True,nargs='+',help='Space-delimited list of FastQC .zip output files.')
 parser.add_argument('--samples',type=str,required=True,nargs='+',help='Space-delimited list of sample names')
 args = parser.parse_args()
 
