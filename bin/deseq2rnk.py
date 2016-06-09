@@ -1,5 +1,6 @@
 """
-
+Converts the CSV output file from DESeq2 or limma voom into an
+RNK file for use in GSEA preranked tool
 """
 
 import numpy as np
@@ -56,7 +57,7 @@ def main(args):
 
     create_rnk(args=args,data=data)
 
-parser = argparse.ArgumentParser(description='Creates GSEA files from DESeq2 or LimmaVoom output.')
+parser = argparse.ArgumentParser(description='Creates RNK file from DESeq2 or LimmaVoom output.')
 parser.add_argument('--infile',type=str,help='csv file containing deseq2 results',required=True)
 parser.add_argument('--ranking',type=str,help='Ranking statistic to use (statistic (default), logpvalFC)',default='statistic')
 parser.add_argument('--limmavoom',action='store_true',help='Include if results are from limmavoom')
