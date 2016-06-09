@@ -13,6 +13,11 @@ plot_pathway <- function(fpkm,fpkm_threshold=0.1,gmt,pathway,samples,prefix,main
 			genes.2 <- c(genes.2,genes[i])
 		}
 	}
+
+	if (length(samples)==0) {
+		samples = colnames(fpkm)
+	}
+
 	fpkm <- fpkm[genes.2,samples]
 	fpkm[fpkm<=fpkm_threshold] <- 0.0
 	fpkm <- fpkm[rowSums(fpkm)>0,]
