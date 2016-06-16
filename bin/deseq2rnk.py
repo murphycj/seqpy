@@ -22,14 +22,23 @@ def create_rnk(args,data):
                 (~pandas.isnull(result_data['rank'])) &
                 (~np.isinf(result_data['rank']))
                 ]
-        elif args.ranking == 'logpvalFC':
+        elif args.ranking == 'logPvalSignFC':
             result_data['name'] = data.index
-            result_data['rank'] = (-np.log2(data['P.Value'])*data['logFC']).tolist()
+            result_data['rank'] = (-np.log2(data['P.Value'])*np.sign(data['logFC'])).tolist()
             result_data = result_data[
                 (~pandas.isnull(result_data['name'])) &
                 (~pandas.isnull(result_data['rank'])) &
                 (~np.isinf(result_data['rank']))
                 ]
+        else:
+            result_data['name'] = data.index
+            result_data['rank'] = (-np.log2(data['P.Value'])).tolist()
+            result_data = result_data[
+                (~pandas.isnull(result_data['name'])) &
+                (~pandas.isnull(result_data['rank'])) &
+                (~np.isinf(result_data['rank']))
+                ]
+
     else:
         if args.ranking == 'statistic':
             result_data['name'] = data.index
@@ -39,14 +48,23 @@ def create_rnk(args,data):
                 (~pandas.isnull(result_data['rank'])) &
                 (~np.isinf(result_data['rank']))
                 ]
-        elif args.ranking == 'logpvalFC':
+        elif args.ranking == 'logPvalSignFC':
             result_data['name'] = data.index
-            result_data['rank'] = (-np.log2(data['pvalue'])*data['log2FoldChange']).tolist()
+            result_data['rank'] = (-np.log2(data['pvalue'])*np.sign(data['log2FoldChange'])).tolist()
             result_data = result_data[
                 (~pandas.isnull(result_data['name'])) &
                 (~pandas.isnull(result_data['rank'])) &
                 (~np.isinf(result_data['rank']))
                 ]
+        else:
+            result_data['name'] = data.index
+            result_data['rank'] = (-np.log2(data['pvalue'])).tolist()
+            result_data = result_data[
+                (~pandas.isnull(result_data['name'])) &
+                (~pandas.isnull(result_data['rank'])) &
+                (~np.isinf(result_data['rank']))
+                ]
+
 
     result_data.to_csv(args.out,index=False,header=False, sep='\t')
 
@@ -59,7 +77,7 @@ def main(args):
 
 parser = argparse.ArgumentParser(description='Creates RNK file from DESeq2 or LimmaVoom output.')
 parser.add_argument('--infile',type=str,help='csv file containing deseq2 results',required=True)
-parser.add_argument('--ranking',type=str,help='Ranking statistic to use (statistic (default), logpvalFC)',default='statistic')
+parser.add_argument('--ranking',type=str,help='Ranking statistic to use (statistic (default), logPvalSignFC, logPval)',default='statistic')
 parser.add_argument('--limmavoom',action='store_true',help='Include if results are from limmavoom')
 parser.add_argument('--out',type=str,help='Output prefix',required=True)
 args = parser.parse_args()

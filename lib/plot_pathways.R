@@ -23,7 +23,18 @@ plot_pathway <- function(fpkm,fpkm_threshold=0.1,gmt,pathway,samples,prefix,main
 	fpkm <- fpkm[rowSums(fpkm)>0,]
 
 	png(paste(prefix,".png",sep=""),width=1000,height=1000)
-	heatmap.2(log(fpkm+0.1),trace="none",keysize=1.0,scale="row",margins=margins,cexRow=cexRow,cexCol=cexCol,col= redgreen(75),key.title="Gene expression",main=main)
+	heatmap.2(
+		log(fpkm+0.1),
+		trace="none",
+		keysize=1.0,
+		scale="row",
+		margins=margins,
+		cexRow=cexRow,
+		cexCol=cexCol,
+		col=greenred(75),
+		key.title="Gene expression",
+		main=main
+	)
 	dev.off()
 	write.csv(fpkm,paste(prefix,".csv",sep=""))
 }

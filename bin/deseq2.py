@@ -25,11 +25,8 @@ def main(args):
     group1 = ','.join(map(lambda x: '\"' + str(x) + '\"', args.group1.split(',')))
     group2 = ','.join(map(lambda x: '\"' + str(x) + '\"', args.group2.split(',')))
 
-    if not os.path.exists(folder):
-        os.mkdir(folder)
-
-    rscript = folder + '/' + name + '.R'
-    rlog = folder + '/' + name + '.log'
+    rscript = name + '.R'
+    rlog = name + '.log'
     filehandle = open(rscript, 'w')
 
     filehandle.write('#\n')
@@ -41,17 +38,17 @@ def main(args):
     filehandle.write('\t# This function just plots some diagnostic plots and saves the results\n')
     filehandle.write('\t#\n')
     filehandle.write('\tdd = results[with(results,order(padj)),]\n')
-    filehandle.write('\twrite.csv(dd,paste(\"' + folder + '/\",name,\"_results.csv\",sep=\"\"))\n')
+    filehandle.write('\twrite.csv(dd,paste(name,\"_results.csv\",sep=\"\"))\n')
 
-    filehandle.write('\tpdf(paste(\"' + folder + '/\",name,\"-pvalue-hist.pdf\",sep=\"\"))\n')
+    filehandle.write('\tpdf(paste(name,\"-pvalue-hist.pdf\",sep=\"\"))\n')
     filehandle.write('\thist(res$pvalue, breaks=20, col=\"grey\")\n')
     filehandle.write('\tdev.off()\n')
 
-    filehandle.write('\tpdf(paste(\"' + folder + '/\",name,\"-padj-hist.pdf\",sep=\"\"))\n')
+    filehandle.write('\tpdf(paste(name,\"-padj-hist.pdf\",sep=\"\"))\n')
     filehandle.write('\thist(res$padj, breaks=20, col=\"grey\")\n')
     filehandle.write('\tdev.off()\n')
 
-    filehandle.write('\tpdf(paste(\"' + folder + '/\",name,\"-MA-plot.pdf\",sep=\"\"))\n')
+    filehandle.write('\tpdf(paste(name,\"-MA-plot.pdf\",sep=\"\"))\n')
     filehandle.write('\tplotMA(results)\n')
     filehandle.write('\tdev.off()\n')
 
@@ -64,7 +61,6 @@ def main(args):
 
     filehandle.write('data <- read.csv(\"' + os.path.abspath(args.counts) + '\",row.names=1, check.names=FALSE)\n')
 
-    filehandle.write('setwd(\"' + folder + '\")\n')
     filehandle.write('data2 <- data[,c(' + group1 + ',' + group2 + ')]\n')
     filehandle.write('data2 <- data2[rowSums(data2)>0,]\n')
     filehandle.write('coldata <- data.frame(treatment=c(rep(\"' + phenotypes[0] + '\",length(c(' + group1 + '))),rep(\"' + phenotypes[1] + '\",length(c(' + group2 + ')))), row.names=colnames(data2))\n')

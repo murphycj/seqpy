@@ -10,7 +10,7 @@ parser$add_argument("-out",type="character",help="The new output file name.")
 args <- parser$parse_args()
 
 
-data <- read.csv(args$data,row.names=1)
+data <- read.csv(args$data,row.names=1,check.names=F)
 
 r <- getBM(attributes=c("mgi_symbol","ensembl_gene_id"),filters=c("ensembl_gene_id"),values=row.names(data),mart=ensembl)
 

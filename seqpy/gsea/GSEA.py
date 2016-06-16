@@ -11,6 +11,13 @@ class GSEA():
     """
 
     def __init__(self,directory='',name=''):
+        """
+        directory: the directory containing the full GSEA result files
+
+        name: name to give the analysis, this will be the name on the
+              tab in the excel file
+        """
+
         self.directory = directory
         self.name = name
 
