@@ -28,6 +28,8 @@ main <- function(args) {
 
   #deal with non-duplicat genes with no symbol
 
+  r[is.na(r[,1]),1] <- ""
+
   empty_symbols <- !(duplicated(r[,2]) | duplicated(r[,2], fromLast=TRUE)) & (r[,1]=="")
   r[empty_symbols,1] <- r[empty_symbols,2]
 
@@ -85,12 +87,35 @@ main <- function(args) {
 
 parser <- ArgumentParser()
 
-parser$add_argument("-data",type="character",help="The file where row names are symbol and columns are whatever.")
-parser$add_argument("-d",type="character",help="Delimit character in data. Options: csv, tab")
-parser$add_argument("-intype",type="character",help="Biomart input type (e.g. entrezgene)")
-parser$add_argument("-outtype",type="character",help="Biomart output type (e.g. mgi_symbol)")
-parser$add_argument("-dataset",type="character",help="Biomart dataset to use (e.g. mmusculus_gene_ensembl, hsapiens_gene_ensembl)")
-parser$add_argument("-out",type="character",help="The new output file name.")
+parser$add_argument(
+  "-data",
+  type="character",help="The file where row names are symbol and columns are whatever."
+)
+parser$add_argument(
+  "-d",
+  type="character",
+  help="Delimit character in data. Options: csv, tab"
+)
+parser$add_argument(
+  "-intype",
+  type="character",
+  help="Biomart input type (e.g. entrezgene, ensembl_gene_id, hgnc_symbol)"
+)
+parser$add_argument(
+  "-outtype",
+  type="character",
+  help="Biomart output type (e.g. mgi_symbol)"
+)
+parser$add_argument(
+  "-dataset",
+  type="character",
+  help="Biomart dataset to use (e.g. mmusculus_gene_ensembl, hsapiens_gene_ensembl)"
+)
+parser$add_argument(
+  "-out",
+  type="character",
+  help="The new output file name."
+)
 
 args <- parser$parse_args()
 

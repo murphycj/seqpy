@@ -1,33 +1,37 @@
 library(gplots)
 source("/Users/charlesmurphy/Desktop/Research/lib/seqpy/lib/gsea.R")
 
-plot_pathway <- function(fpkm,fpkm_threshold=0.1,gmt,pathway,samples,prefix,main,margins=c(8,12),cexRow=0.25,cexCol=1.2) {
-	fpkm <- as.matrix(read.csv(fpkm,header=TRUE,row.names=1,check.names=F))
+plot_pathway <- function(data,threshold=0.1,gmt,pathway,samples,prefix,main,margins=c(8,12),cexRow=0.25,cexCol=1.2,log_data=T,scale="row") {
+	data <- as.matrix(read.csv(data,header=TRUE,row.names=1,check.names=F))
 
 	gmt <- parse_gmt(gmt=gmt)
 
 	genes = gmt[[pathway]]
 	genes.2 <- c()
 	for (i in 1:length(genes)) {
-		if (genes[i] %in% row.names(fpkm)) {
+		if (genes[i] %in% row.names(data)) {
 			genes.2 <- c(genes.2,genes[i])
 		}
 	}
 
 	if (length(samples)==0) {
-		samples = colnames(fpkm)
+		samples = colnames(data)
 	}
 
-	fpkm <- fpkm[genes.2,samples]
-	fpkm[fpkm<=fpkm_threshold] <- 0.0
-	fpkm <- fpkm[rowSums(fpkm)>0,]
+	data <- data[genes.2,samples]
+	data[data<=threshold] <- 0.0
+	data <- data[rowSums(data)>0,]
+
+	if (log_data) {
+		data = log(data+0.1)
+	}
 
 	png(paste(prefix,".png",sep=""),width=1000,height=1000)
 	heatmap.2(
-		log(fpkm+0.1),
+		data,
 		trace="none",
 		keysize=1.0,
-		scale="row",
+		scale=scale,
 		margins=margins,
 		cexRow=cexRow,
 		cexCol=cexCol,
@@ -36,7 +40,7 @@ plot_pathway <- function(fpkm,fpkm_threshold=0.1,gmt,pathway,samples,prefix,main
 		main=main
 	)
 	dev.off()
-	write.csv(fpkm,paste(prefix,".csv",sep=""))
+	write.csv(data,paste(prefix,".csv",sep=""))
 }
 
 plot_multiple_pathways <- function(fpkm,fpkm_threshold=0.1,gmt,pathways,samples,prefix,main) {
