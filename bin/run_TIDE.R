@@ -37,23 +37,26 @@ run_TIDE_function <- function(control_file,sg_sequence,rg1,rg2,args) {
     rg2=rg2
   )
 
-  png(paste(args$prefix,"-decomposition.png",sep=""),width=1200,height=600)
+  png(paste(args$out,"/",args$prefix,"-decomposition.png",sep=""),width=1200,height=600)
   d=decomposition(
     import=result,
     p.threshold=args$pthreshold,
-    fout=paste(args$prefix,"-decomposition.txt",sep="")
+    fout=paste(args$out,"/",args$prefix,"-decomposition.txt",sep="")
   )
   dev.off()
 
-  png(paste(args$prefix,"-quality.png",sep=""),width=1200,height=600)
+  png(paste(args$out,"/",args$prefix,"-quality.png",sep=""),width=1200,height=600)
   quality(
     import=result,
-    fout=paste(args$prefix,"-quality.txt")
+    fout=paste(args$out,"/",args$prefix,"-quality.txt",sep="")
   )
   dev.off()
 }
 
 main <- function(args) {
+
+  dir.create(args$out,showWarnings=F)
+
   control_trace <- ""
   sg_sequence <- ""
   rg1 = NA
@@ -94,15 +97,16 @@ parser <- ArgumentParser()
 parser$add_argument("-test",type="character",help="The test trace file.")
 parser$add_argument("-control",type="character",help="The control file (optional).",default="")
 parser$add_argument("-prefix",type="character",help="Prefix of output files.",default="")
+parser$add_argument("-out",type="character",help="Output dir.",default="")
 parser$add_argument("-guide",type="character",help="The sgRNA code.")
 parser$add_argument("-sgseq",type="character",help="The sgRNA sequence (optional).",default="")
 parser$add_argument("-gene",type="character",help="The gene.")
-parser$add_argument("-seqstart",type="integer",help="seqstart",default=100)
-parser$add_argument("-seqend",type="integer",help="seqend",default=700)
-parser$add_argument("-maxshift",type="integer",help="maxshift",default=10)
-parser$add_argument("-rg1",type="integer",help="rg1",default=0)
-parser$add_argument("-rg2",type="integer",help="rg2",default=0)
-parser$add_argument("-pthreshold",type="double",help="p.threshold",default=0.01)
+parser$add_argument("-seqstart",type="integer",help="start of sequence read from where data will be included (because beginning of seq reads tends to be poor quality, default 100)",default=100)
+parser$add_argument("-seqend",type="integer",help="last bp to be included in analysis (will be automatically adjusted if reads are shorter, see below, default 700)",default=700)
+parser$add_argument("-maxshift",type="integer",help="range of basepair shifts (indels) to be analyzed, both positive and negative (defualt 10)",default=10)
+parser$add_argument("-rg1",type="integer",help="[optional] the first (rg1) and last (rg2) base of the sequence region that is used for decomposition; will be automatically set if NA (default 0)",default=0)
+parser$add_argument("-rg2",type="integer",help="[optional] the first (rg1) and last (rg2) base of the sequence region that is used for decomposition; will be automatically set if NA (default 0)",default=0)
+parser$add_argument("-pthreshold",type="double",help="p.threshold (defualt 0.01)",default=0.01)
 
 args <- parser$parse_args()
 

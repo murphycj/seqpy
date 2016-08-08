@@ -131,7 +131,7 @@ parser.add_argument(
     type=int,
     required=True,
     default=1,
-    help='Minimum number of normal samples (with sufficient reads covering mutation site) to consider the site somatic.'
+    help='Minimum number of normal samples with sufficient reads covering mutation site to consider whether the site is somatic in the tumors'
 )
 parser.add_argument('--out',type=str,help='Output file name.',required=True)
 args = parser.parse_args()

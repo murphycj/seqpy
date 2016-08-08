@@ -104,7 +104,7 @@ parser$add_argument(
 parser$add_argument(
   "-outtype",
   type="character",
-  help="Biomart output type (e.g. mgi_symbol)"
+  help="Biomart output type (e.g. mgi_symbol, hgnc_symbol)"
 )
 parser$add_argument(
   "-dataset",

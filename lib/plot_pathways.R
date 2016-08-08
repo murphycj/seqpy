@@ -37,7 +37,8 @@ plot_pathway <- function(data,threshold=0.1,gmt,pathway,samples,prefix,main,marg
 		cexCol=cexCol,
 		col=greenred(75),
 		key.title="Gene expression",
-		main=main
+		main=main,
+		distfun=function(x) as.dist(1-cor(t(x),method="spearman"))
 	)
 	dev.off()
 	write.csv(data,paste(prefix,".csv",sep=""))
