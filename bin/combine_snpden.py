@@ -9,19 +9,28 @@ def main(args):
 
     for d in data:
         snpden = pandas.read_table(d[0], sep='\t', index_col=None,low_memory=False)
+        temp = zip(snpden['CHROM'],snpden['BIN_START'])
         temp2 = pandas.DataFrame(snpden['VARIANTS/KB'])
+        temp2.index = temp
+        temp2.columns = [d[1]]
         results[d[1]] = temp2
         samples.append(d[1])
+        locations += temp
 
-    all_data = pandas.DataFrame(index = range(0,snpden.shape[0]), columns = ['CHROM','BIN_START'] + samples)
-    all_data['CHROM'] = snpden['CHROM']
-    all_data['BIN_START'] = snpden['BIN_START']
+    locations = list(set(locations))
+
+    all_data = pandas.DataFrame(index = locations, columns = ['CHROM','BIN_START'] + samples)
+    all_data['CHROM'] = map(lambda x: x[0],locations)
+    all_data['BIN_START'] = map(lambda x: x[1],locations)
 
     for s, d in results.items():
-        all_data[s] = d
-    
+        all_data.loc[:,s] = d
+
+    all_data=all_data.fillna(0)
+
     temp = all_data[samples]>=args.min_den
     all_data = all_data[temp.sum(axis=1)>0]
+    all_data = all_data.sort_index()
     all_data.to_csv(args.out,index=False)
 
 
