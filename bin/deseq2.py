@@ -62,7 +62,7 @@ def main(args):
     filehandle.write('data <- read.csv(\"' + os.path.abspath(args.counts) + '\",row.names=1, check.names=FALSE)\n')
 
     filehandle.write('data2 <- data[,c(' + group1 + ',' + group2 + ')]\n')
-    filehandle.write('data2 <- data2[rowSums(data2)>0,]\n')
+    filehandle.write('data2 <- data2[rowSums(data2)>' + str(args.mincount) + ',]\n')
     filehandle.write('coldata <- data.frame(treatment=c(rep(\"' + phenotypes[0] + '\",length(c(' + group1 + '))),rep(\"' + phenotypes[1] + '\",length(c(' + group2 + ')))), row.names=colnames(data2))\n')
     filehandle.write('countTable <- DESeqDataSetFromMatrix(countData=data2,colData=coldata,design=~treatment)\n')
     filehandle.write('result <- DESeq(countTable)\n')
@@ -82,6 +82,13 @@ parser.add_argument(
     type=str,
     help='csv file containing RNA-seq count (using human gene symbols)',
     required=True
+)
+parser.add_argument(
+    '--mincount',
+    type=int,
+    help='Minimum count (default 1)',
+    required=False,
+    default=1
 )
 parser.add_argument(
     '--group1',
