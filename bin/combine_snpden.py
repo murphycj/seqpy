@@ -1,0 +1,57 @@
+import pandas
+import argparse
+
+def main(args):
+    data = zip(args.files,args.samples)
+    results = {}
+    samples = []
+    locations = []
+
+    for d in data:
+        snpden = pandas.read_table(d[0], sep='\t', index_col=None,low_memory=False)
+        temp2 = pandas.DataFrame(snpden['VARIANTS/KB'])
+        results[d[1]] = temp2
+        samples.append(d[1])
+
+    all_data = pandas.DataFrame(index = range(0,snpden.shape[0]), columns = ['CHROM','BIN_START'] + samples)
+    all_data['CHROM'] = snpden['CHROM']
+    all_data['BIN_START'] = snpden['BIN_START']
+
+    for s, d in results.items():
+        all_data[s] = d
+    
+    temp = all_data[samples]>=args.min_den
+    all_data = all_data[temp.sum(axis=1)>0]
+    all_data.to_csv(args.out,index=False)
+
+
+parser = argparse.ArgumentParser(description='Aggregates the snpden values from cufflinks output')
+parser.add_argument(
+    '--files',
+    type=str,
+    required=True,
+    nargs='+',
+    help='Space-delimited list.'
+)
+parser.add_argument(
+    '--samples',
+    type=str,
+    required=True,
+    nargs='+',
+    help='Space-delimited list of sample names'
+)
+parser.add_argument(
+    '--min_den',
+    type=int,
+    help='Filter for only windows where at least one samples has min_den (default 5)',
+    default=5
+)
+parser.add_argument(
+    '--out',
+    type=str,
+    required=True,
+    help='Output file name'
+)
+args = parser.parse_args()
+
+main(args=args)
