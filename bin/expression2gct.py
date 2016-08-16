@@ -15,9 +15,10 @@ def main(args):
     descriptions: vector of gene descriptions
     """
 
-    assert args.out.find('.gct')!=-1,"Pass a .gct filename"
 
     data = pandas.read_csv(args.infile,index_col=0)
+    print args.group1+args.group2
+    data = data[args.group1+args.group2]
 
     samples = data.columns.tolist()
     genes = data.index.tolist()
@@ -33,16 +34,43 @@ def main(args):
     gct.to_csv('temp.txt',sep='\t',index=False)
 
     gct = open('temp.txt', 'r').read()
-    fout = open(args.out, 'w')
+    fout = open(args.prefix+'.gct', 'w')
     fout.write('#1.2\n')
     fout.write(str(data.shape[0]) + '\t' + str(len(samples)) + '\n')
     fout.write(gct)
     fout.close()
 
+    fout = open(args.prefix + '.cls','w')
+    fout.write(str(len(args.group1) + len(args.group2)) + ' 2 1\n')
+    fout.write('# ' + args.phenotypes[0] + ' ' + args.phenotypes[1] + '\n')
+    fout.write(' '.join(['0']*len(args.group1)) + ' ' + ' '.join(['1']*len(args.group2)) + '\n')
+    fout.close()
 
-parser = argparse.ArgumentParser(description='')
+
+parser = argparse.ArgumentParser(description='Creates a gct and cls file from a expression file')
 parser.add_argument('--infile',type=str,help='CSV file containing expresion data',required=True)
-parser.add_argument('--out',type=str,help='out file name (.gct)',required=False)
+parser.add_argument(
+    '--group1',
+    type=str,
+    required=True,
+    nargs='+',
+    help='Space-delimited list of sample names'
+)
+parser.add_argument(
+    '--group2',
+    type=str,
+    required=True,
+    nargs='+',
+    help='Space-delimited list of sample names'
+)
+parser.add_argument(
+    '--phenotypes',
+    type=str,
+    required=True,
+    nargs='+',
+    help='Space separated name for the groups/phenotype (e.g. WT,MUT), same order and group1 and group2'
+)
+parser.add_argument('--prefix',type=str,help='out file prefix',required=False)
 args = parser.parse_args()
 
 main(args=args)
