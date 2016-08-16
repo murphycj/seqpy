@@ -118,7 +118,13 @@ parser = argparse.ArgumentParser(description='')
 parser.add_argument('--vcf',type=str,required=True)
 parser.add_argument('--pileups',type=str,required=True,help='Pileup files for control samples',nargs='+')
 parser.add_argument('--samples',type=str,required=True,help='Sample names (same order as pileups)',nargs='+')
-parser.add_argument('--maxSupporting',type=int,default=2,required=True,help='Maximum number of supporting mutant bases that can be observed in any normal samples.')
+parser.add_argument(
+    '--maxSupporting',
+    type=int,
+    default=2,
+    required=True,
+    help='Maximum number of supporting mutant bases that can be observed in any normal samples.'
+)
 parser.add_argument(
     '--minCoverage',
     type=int,
