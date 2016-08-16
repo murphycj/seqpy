@@ -64,17 +64,12 @@ def main(args):
     filehandle.write('data2 <- data[,c(' + group1 + ',' + group2 + ')]\n')
     filehandle.write('data2 <- data2[rowSums(data2)>' + str(args.mincount) + ',]\n')
     filehandle.write(
-        'coldata <- data.frame(treatment=c(rep(\"' + \
-        phenotypes[1] + \
-        '\",length(c(' + \
-        group1 + \
-        '))),rep(\"' + \
-        phenotypes[0] + \
-        '\",length(c(' + \
-        group2 + \
-        ')))), row.names=colnames(data2))\n'
+        'coldata <- data.frame(treatment=factor(c(' + \
+        'rep(\"' + phenotypes[1] + '\",length(c(' + group1 + '))),' + \
+        'rep(\"' + phenotypes[0] + '\",length(c(' + group2 + ')))),' + \
+        'levels=c(\"' + phenotypes[1] +'\",\"' + phenotypes[0] + '\")), ' + \
+        'row.names=colnames(data2))\n'
     )
-    filehandle.write('levels(coldata) <- c(\"' + phenotypes[0] +'\",\"' + phenotypes[1] + '\")')
     filehandle.write('countTable <- DESeqDataSetFromMatrix(countData=data2,colData=coldata,design=~treatment)\n')
     filehandle.write('result <- DESeq(countTable)\n')
     filehandle.write('res <- results(result)\n')
