@@ -1,26 +1,6 @@
 import vcf
 import argparse
 
-
-EFFECTs = [
-    'missense_variant',
-    'frameshift_variant',
-    'start_lost',
-    'stop_gained',
-    '5_prime_UTR_premature_start_codon_gain_variant',
-    'nonsense_mediated_decay',
-    'inframe_insertion',
-    'disruptive_inframe_insertion',
-    'inframe_deletion',
-    'disruptive_inframe_deletion',
-    'rare_amino_acid_variant',
-    'splice_acceptor_variant',
-    'splice_donor_variant',
-    'stop_lost',
-    'non_coding_exon_variant'
-    ]
-
-
 def main(args):
     vcf_in = vcf.Reader(open(args.vcf,'r'))
     fout = open(args.out,'w')
@@ -39,7 +19,7 @@ def main(args):
 
         for ann in v.INFO['ANN']:
             info = ann.split('|')
-            if info[1] not in EFFECTs:
+            if (not args.everything) and (info[1] not in args.filter_effects):
                 continue
 
 
@@ -74,6 +54,36 @@ def main(args):
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--vcf',type=str,help='Meta-directory where each sub-directory contains fpkm for each sample',required=True)
+parser.add_argument(
+    '--filter_effects',
+    type=str,
+    nargs='+',
+    required=False,
+    help='Space-delimited list of variant types to include in output (default: ' + \
+    'missense_variant frameshift_variant start_lost stop_gained ' + \
+    '5_prime_UTR_premature_start_codon_gain_variant nonsense_mediated_decay ' + \
+    'inframe_insertion disruptive_inframe_insertion inframe_deletion disruptive_inframe_deletion ' + \
+    'rare_amino_acid_variant splice_acceptor_variant splice_donor_variant ' + \
+    'stop_lost non_coding_exon_variant)',
+    default = [
+        'missense_variant',
+        'frameshift_variant',
+        'start_lost',
+        'stop_gained',
+        '5_prime_UTR_premature_start_codon_gain_variant',
+        'nonsense_mediated_decay',
+        'inframe_insertion',
+        'disruptive_inframe_insertion',
+        'inframe_deletion',
+        'disruptive_inframe_deletion',
+        'rare_amino_acid_variant',
+        'splice_acceptor_variant',
+        'splice_donor_variant',
+        'stop_lost',
+        'non_coding_exon_variant'
+        ]
+)
+parser.add_argument('--everything',action='store_true',help='Output all types of variants',required=False)
 parser.add_argument('--out',type=str,help='Collate FPKM values for genes',required=False)
 args = parser.parse_args()
 
