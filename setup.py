@@ -1,7 +1,7 @@
 import os
 from setuptools import setup, find_packages
 
-README = open('README.rst').read()
+README = open('README.md').read()
 
 setup(
     #version = repo.commit('master').id,
