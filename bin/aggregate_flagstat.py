@@ -1,3 +1,9 @@
+"""
+Aggregates flagstat output files from samtools into a single csv file
+
+"""
+
+
 import argparse
 import pandas
 from crimson import flagstat
