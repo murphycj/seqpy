@@ -54,7 +54,7 @@ def main(args):
             )
 
             fout.write(',' + str(n))
-            
+
             for s in v.samples:
 
                 #if mutation is present, print the mutation frequency
