@@ -10,7 +10,7 @@ def main(args):
     #create root directory on server
 
     if not args.remoteroot==".":
-        cmd ='~/chm2059/lib/lftp-4.7.1/bin/lftp ' + \
+        cmd = + args.lftp + ' ' + \
             '-c \"open -u ' + args.user + ',' + args.password + ' ' + \
             args.remote + '; ' + \
             'mkdir -f ~/' + args.remoteroot + ';\"'
@@ -19,7 +19,7 @@ def main(args):
     #copy directory structure
 
     for d in os.walk(args.dir):
-        cmd = '~/chm2059/lib/lftp-4.7.1/bin/lftp ' + \
+        cmd = + args.lftp + ' ' + \
             '-c \"open -u ' + args.user + ',' + args.password + ' ' + \
             args.remote + '; ' + \
             'mkdir -f ~/' + args.remoteroot + '/' + \
@@ -30,7 +30,7 @@ def main(args):
 
     for d in os.walk(args.dir):
         for f in d[2]:
-            cmd = '~/chm2059/lib/lftp-4.7.1/bin/lftp ' + \
+            cmd = + args.lftp + ' ' + \
                 '-c \"open -u ' + args.user + ',' + args.password + ' ' + \
                 args.remote + '; ' + \
                 'put -O ~/' + args.remoteroot + '/' + d[0] + '/' + f + ';\"'
@@ -59,7 +59,8 @@ parser.add_argument(
 parser.add_argument(
     '--lftp',
     type=str,
-    help='Path to lftp (default ~/chm2059/lib/lftp-4.7.1/bin/lftp)'
+    require=True,
+    help='Path to lftp'
 )
 parser.add_argument(
     '--user',
