@@ -69,7 +69,7 @@ def count_context(args):
             context = contexts[0] + CONVERSIONS[contexts[1]] + contexts[2]
             context_counts[context] += 1
 
-    fout = open(args.prefix + '.context_count.txt','w')
+    fout = open(args.output,'w')
     fout.write('context,count\n')
     for i in context_counts.keys():
         fout.write(i + ',' + str(context_counts[i]) + '\n')
@@ -95,4 +95,4 @@ parser.add_argument('--samtools',type=str,help='Path to samtools',required=True)
 parser.add_argument('--output',type=str,help='Output file name.',required=True)
 args = parser.parse_args()
 
-main(args=args)
+count_context(args=args)
