@@ -5,6 +5,7 @@
 import pandas
 import os
 import argparse
+import sys
 from subprocess import Popen, PIPE
 import vcf
 
@@ -45,29 +46,32 @@ def count_context(args):
             context_counts.append(i[0] + j[0] + i[1])
     context_counts = {i:0 for i in context_counts}
 
-    p = Popen([args.samtools,'mpileup','-f',args.genome,args.bam],stdout=PIPE,stderr=PIPE,stdin=PIPE)
+    for line in sys.stdin:
+        if line.find('mpileup')!=-1:
+            continue
+        try:
+            line = line.rstrip().split('\t')
+            depth = int(line[3])
+            reference = line[2].lower()
 
-    for line in p.stdout.readlines():
-        line = line.rstrip().split('\t')
-        depth = int(line[3])
-        reference = line[2].lower()
+            contexts[0] = contexts[1]
+            contexts[1] = contexts[2]
 
-        contexts[0] = contexts[1]
-        contexts[1] = contexts[2]
-
-        if depth>=1 and reference!='n':
+            if depth>=args.n and reference!='n':
                 three += 1
                 contexts[2] = reference
-        else:
-            three = 0
-            contexts[2] = ''
+            else:
+                three = 0
+                contexts[2] = ''
 
-        if three > 3:
-            three = 3
+            if three > 3:
+                three = 3
 
-        if three == 3:
-            context = contexts[0] + CONVERSIONS[contexts[1]] + contexts[2]
-            context_counts[context] += 1
+            if three == 3:
+                context = contexts[0] + CONVERSIONS[contexts[1]] + contexts[2]
+                context_counts[context] += 1
+        except:
+            import pdb; pdb.set_trace()
 
     fout = open(args.output,'w')
     fout.write('context,count\n')
@@ -75,23 +79,8 @@ def count_context(args):
         fout.write(i + ',' + str(context_counts[i]) + '\n')
     fout.close()
 
-    return context_counts
-
-def main(args):
-
-    assert os.path.isfile(args.genome), "Genome does not exist"
-    assert os.path.isfile(args.genome + '.fai'), "Index your genome"
-
-    context_counts = count_context(args=args)
-
-
-    data.to_csv(args.out)
-
-
-parser = argparse.ArgumentParser(description='Get the mutation context spectrum')
-parser.add_argument('--bam',type=str,help='BAM file.',required=True)
-parser.add_argument('--genome',type=str,help='Path to genome (e.g. /path/to/mm9.fa).',required=True)
-parser.add_argument('--samtools',type=str,help='Path to samtools',required=True)
+parser = argparse.ArgumentParser(description='Count the number of times a certain tri-nucleotide is sequenced')
+parser.add_argument('--n',type=int,help='Min depth (default 10)',required=True)
 parser.add_argument('--output',type=str,help='Output file name.',required=True)
 args = parser.parse_args()
 
