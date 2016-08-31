@@ -1,13 +1,6 @@
-"""
-
-"""
-
-import pandas
 import os
 import argparse
 import sys
-from subprocess import Popen, PIPE
-import vcf
 
 
 SUBSTITUTIONS = {
