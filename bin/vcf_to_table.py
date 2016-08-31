@@ -16,7 +16,7 @@ def main(args):
         fout.write(',' + s)
     fout.write('\n')
 
-    if 'none' in args.filter_effects:
+    if 'none' not in args.filter_effects:
         filter_effects = args.filter_effects
     else:
         filter_effects = []
