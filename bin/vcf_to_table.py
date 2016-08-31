@@ -61,7 +61,6 @@ def main(args):
 
                 if s.called:
                     fout.write(',%s (%s/%s)' % (s.data.FREQ, s.data.AD, (s.data.AD + s.data.RD)))
-                    n+=1
                 else:
                     fout.write(',-')
             fout.write('\n')
