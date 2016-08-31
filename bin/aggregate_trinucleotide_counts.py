@@ -9,12 +9,15 @@ def main(args):
 
     data = zip(args.counts,args.samples)
 
+    samples = []
+
     for c,s in data:
         temp = pandas.read_csv(c,index_col=0)
-        temp.columns = [s]
+        samples.append(s)
         counts.append(temp)
 
     data = pandas.concat(counts,axis=1)
+    data.columns = samples
 
     data.to_csv(args.out)
 
