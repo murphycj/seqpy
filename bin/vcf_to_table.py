@@ -16,6 +16,11 @@ def main(args):
         fout.write(',' + s)
     fout.write('\n')
 
+    if 'none' in args.filter_effects:
+        filter_effects = args.filter_effects
+    else:
+        filter_effects = []
+
     for v in vcf_in:
 
         #loop through all possible mutation annotations for each mutation
@@ -36,7 +41,7 @@ def main(args):
             #split the ANN fields and get predicted effect
 
             info = ann.split('|')
-            if (not args.everything) and (info[1] not in args.filter_effects):
+            if (not args.everything) and (info[1] not in filter_effects):
                 continue
 
             #if has effect that is desired, print it
@@ -79,7 +84,7 @@ parser.add_argument(
     '5_prime_UTR_premature_start_codon_gain_variant nonsense_mediated_decay ' + \
     'inframe_insertion disruptive_inframe_insertion inframe_deletion disruptive_inframe_deletion ' + \
     'rare_amino_acid_variant splice_acceptor_variant splice_donor_variant ' + \
-    'stop_lost non_coding_exon_variant)',
+    'stop_lost non_coding_exon_variant). Use --filter_effects none if you wanted to include all effects',
     default = [
         'missense_variant',
         'frameshift_variant',
