@@ -7,6 +7,8 @@ have which mutations
 
 import vcf
 import argparse
+from seqpy.parsers import *
+
 
 def main(args):
     vcf_in = vcf.Reader(open(args.vcf,'r'))
@@ -16,17 +18,15 @@ def main(args):
         fout.write(',' + s)
     fout.write('\n')
 
-    if 'none' not in args.filter_effects:
-        filter_effects = args.filter_effects
-    else:
-        filter_effects = []
-
     for v in vcf_in:
 
         #loop through all possible mutation annotations for each mutation
 
         genes = []
-        if 'ANN' not in v.INFO:
+
+        vinfo = SnpEffInfo(v.INFO)
+
+        if not vinfo.has_ann():
             continue
 
         #get the total number of samples with the mutation
@@ -36,12 +36,9 @@ def main(args):
             if s.called:
                 n+=1
 
-        for ann in v.INFO['ANN']:
+        for ann in vinfo.ann:
 
-            #split the ANN fields and get predicted effect
-
-            info = ann.split('|')
-            if (not args.everything) and (info[1] not in filter_effects):
+            if (not args.everything) and (ann.annotation not in args.filter_effects):
                 continue
 
             #if has effect that is desired, print it
@@ -51,11 +48,11 @@ def main(args):
                 str(v.POS) + ',' +
                 v.REF + ',' +
                 str(v.ALT[0]) + ',' +
-                str(info[3]) + ',' +
-                info[6] + ',' +
-                info[9] + ',' +
-                info[10] + ',' +
-                info[1]
+                str(ann.gene_name) + ',' +
+                ann.feature_id + ',' +
+                ann.basepair_change + ',' +
+                ann.aminoacid_change + ',' +
+                ann.annotation
             )
 
             fout.write(',' + str(n))
