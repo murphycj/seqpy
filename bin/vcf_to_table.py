@@ -62,7 +62,7 @@ def main(args):
                 #if mutation is present, print the mutation frequency
 
                 if s.called:
-                    if args.mutect
+                    if args.mutect:
                         fout.write(',%s (%s/%s)' % (s.data.AF, s.data.AD[1], sum(s.data.AD)))
                     else:
                         fout.write(',%s (%s/%s)' % (s.data.FREQ, s.data.AD, (s.data.AD + s.data.RD)))
