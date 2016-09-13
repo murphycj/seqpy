@@ -1,3 +1,45 @@
+EFFECTS = {
+    'coding_sequence_variant':4,
+    'chromosome':1,
+    'inframe_insertion':2,
+    'disruptive_inframe_insertion':2,
+    'inframe_deletion':2,
+    'disruptive_inframe_deletion':2,
+    'downstream_gene_variant':4,
+    'exon_variant':4,
+    'exon_loss_variant':1,
+    'frameshift_variant':1,
+    'gene_variant':4,
+    'intergenic_region':4,
+    'conserved_intergenic_variant':4,
+    'intragenic_variant':4,
+    'intron_variant':4,
+    'conserved_intron_variant':4,
+    'miRNA':4,
+    'missense_variant':2,
+    'initiator_codon_variant':3,
+    'stop_retained_variant':3,
+    'rare_amino_acid_variant':1,
+    'splice_acceptor_variant':1,
+    'splice_donor_variant':1,
+    'splice_region_variant':3,
+    'stop_lost':1,
+    'start_lost':1,
+    'stop_gained':1,
+    'synonymous_variant':3,
+    'start_retained':3,
+    'stop_retained_variant':3,
+    'transcript_variant':4,
+    'regulatory_region_variant':4,
+    'upstream_gene_variant':4,
+    '3_prime_UTR_variant':4,
+    '3_prime_UTR_truncation + exon_loss':2,
+    '5_prime_UTR_variant':4,
+    '5_prime_UTR_truncation + exon_loss_variant':2,
+    'sequence_feature + exon_loss_variant':2,
+    'non_coding_exon_variant':4,
+    '5_prime_UTR_premature_start_codon_gain_variant':3
+}
 
 class _ANN:
     def __init__(self,ann):
@@ -5,7 +47,7 @@ class _ANN:
         assert len(ann)==16,'not enough ANN fields'
 
         self.allele = ann[0]
-        self.annotation=ann[1]
+        self.annotation=ann[1].split('&')
         self.putative_impact=ann[2]
         self.gene_name=ann[3]
         self.gene_id=ann[4]
@@ -32,9 +74,22 @@ class SnpEffInfo:
             for ann in self.info['ANN']:
                 self.ann.append(_ANN(ann=ann))
 
+    def _most_deleterious(self,effects):
+
+        max_effect = ''
+        max_score = 5
+
+        for e in effects:
+            score = EFFECTS[e]
+            if score < max_score:
+                max_score=score
+                max_effect=e
+
+        return [max_effect]
+
     def has_effect(self,effect):
         for ann in self.ann:
-            if effect==ann.annotation:
+            if effect in ann.annotation:
                 return True
         return False
 
@@ -45,31 +100,24 @@ class SnpEffInfo:
             return False
 
     def get_most_deleterious_effect(self):
-        for ann in self.ann:
-            if ann.annotation=='missense_variant':
-                return 'missense_variant'
-            if ann.annotation=='splice_donor_variant&intron_variant':
-                return 'splice_donor_variant&intron_variant'
-            if ann.annotation=='frameshift_variant':
-                return 'frameshift_variant'
-            if ann.annotation=='stop_gained':
-                return 'stop_gained'
-            if ann.annotation=='start_lost':
-                return 'start_lost'
-            if ann.annotation=='disruptive_inframe_insertion' or ann.annotation=='inframe_deletion' or ann.annotation=='inframe_insertion':
-                return 'inframe_indel'
 
-        return 'synonymous'
+        return self._most_deleterious(map(lambda x: x.annotation,self.ann))
 
-    def get_effects_by_gene(self):
+    def get_effects_by_gene(self,only_most_deleterious=True):
         r = {}
         for ann in self.ann:
             if ann.gene_name not in r:
-                r[ann.gene_name] = [ann.annotation]
+                r[ann.gene_name] = ann.annotation
             else:
-                r[ann.gene_name].append(ann.annotation)
+                r[ann.gene_name] += ann.annotation
+
+        #report most
 
         for i,j in r.items():
             r[i]=list(set(j))
-            
+
+        if only_most_deleterious:
+            for gene, effects in r.items():
+                r[gene] = self._most_deleterious(effects)
+
         return r

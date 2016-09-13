@@ -62,7 +62,10 @@ def main(args):
                 #if mutation is present, print the mutation frequency
 
                 if s.called:
-                    fout.write(',%s (%s/%s)' % (s.data.FREQ, s.data.AD, (s.data.AD + s.data.RD)))
+                    if args.mutect
+                        fout.write(',%s (%s/%s)' % (s.data.AF, s.data.AD[1], sum(s.data.AD)))
+                    else:
+                        fout.write(',%s (%s/%s)' % (s.data.FREQ, s.data.AD, (s.data.AD + s.data.RD)))
                 else:
                     fout.write(',-')
             fout.write('\n')
@@ -101,6 +104,7 @@ parser.add_argument(
         ]
 )
 parser.add_argument('--everything',action='store_true',help='Output all types of variants',required=False)
+parser.add_argument('--mutect',action='store_true',help='input vcf is from Mutect',required=False)
 parser.add_argument('--out',type=str,help='Collate FPKM values for genes',required=False)
 args = parser.parse_args()
 
