@@ -38,7 +38,16 @@ def main(args):
 
         for ann in vinfo.ann:
 
-            if (not args.everything) and (ann.annotation not in args.filter_effects):
+            if (not args.everything):
+                continue
+
+            has_right_annotation=False
+
+            for a in ann.annotation:
+                if a in args.filter_effects:
+                    has_right_annotation=True
+
+            if not has_right_annotation:
                 continue
 
             #if has effect that is desired, print it
@@ -52,7 +61,7 @@ def main(args):
                 ann.feature_id + ',' +
                 ann.basepair_change + ',' +
                 ann.aminoacid_change + ',' +
-                ann.annotation
+                '&'.join(ann.annotation)
             )
 
             fout.write(',' + str(n))
