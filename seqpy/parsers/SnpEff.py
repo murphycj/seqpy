@@ -74,19 +74,6 @@ class SnpEffInfo:
             for ann in self.info['ANN']:
                 self.ann.append(_ANN(ann=ann))
 
-    def _most_deleterious(self,effects):
-
-        max_effect = ''
-        max_score = 5
-
-        for e in effects:
-            score = EFFECTS[e]
-            if score < max_score:
-                max_score=score
-                max_effect=e
-
-        return [max_effect]
-
     def has_effect(self,effect):
         for ann in self.ann:
             if effect in ann.annotation:
@@ -101,7 +88,26 @@ class SnpEffInfo:
 
     def get_most_deleterious_effect(self):
 
-        return self._most_deleterious(map(lambda x: x.annotation,self.ann))
+        max_effect = list()
+        max_score = 5
+
+        effects = map(lambda x: x.annotation,self.ann)
+        effects = [item for sublist in effects for item in sublist]
+
+        for effect in effects:
+            score = EFFECTS[effect]
+            if score < max_score:
+                max_score=score
+                max_effect=[effect]
+            elif score == max_score:
+                max_effect.append(effect)
+
+        max_effect = list(set(max_effect))
+
+        if len(max_effect)>1:
+            print '!!!WARNING - there is more than one effect that are most deleterious %s' % str(max_effect)
+
+        return max_effect
 
     def get_effects_by_gene(self,only_most_deleterious=True):
         r = {}
@@ -118,6 +124,6 @@ class SnpEffInfo:
 
         if only_most_deleterious:
             for gene, effects in r.items():
-                r[gene] = self._most_deleterious(effects)
+                r[gene] = self.get_most_deleterious_effect(effects)
 
         return r

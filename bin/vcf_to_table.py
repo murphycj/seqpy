@@ -7,7 +7,7 @@ have which mutations
 
 import vcf
 import argparse
-from seqpy.parsers import *
+from seqpy.parsers import SnpEff, SnpEffInfo
 
 
 def main(args):
@@ -39,16 +39,14 @@ def main(args):
         for ann in vinfo.ann:
 
             if (not args.everything):
-                continue
+                has_right_annotation=False
 
-            has_right_annotation=False
+                for a in ann.annotation:
+                    if a in args.filter_effects:
+                        has_right_annotation=True
 
-            for a in ann.annotation:
-                if a in args.filter_effects:
-                    has_right_annotation=True
-
-            if not has_right_annotation:
-                continue
+                if not has_right_annotation:
+                    continue
 
             #if has effect that is desired, print it
 
