@@ -19,7 +19,6 @@ class GSEA():
         """
 
         self.directory = directory
-        self.name = name
 
     def _check_for_nas(self,table):
         """

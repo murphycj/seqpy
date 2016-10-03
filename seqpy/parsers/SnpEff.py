@@ -124,6 +124,6 @@ class SnpEffInfo:
 
         if only_most_deleterious:
             for gene, effects in r.items():
-                r[gene] = self.get_most_deleterious_effect(effects)
+                r[gene] = self.get_most_deleterious_effect()
 
         return r
