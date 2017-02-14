@@ -1,9 +1,15 @@
+"""
+Filter a VCF file output from mutect tumor-normal mutation calling
+
+"""
+
 import vcf
 import argparse
 
+
 def main(args):
-    vcf_in = vcf.Reader(open(args.vcf,'r'))
-    vcf_out = vcf.Writer(open(args.out,'w'), vcf_in)
+    vcf_in = vcf.Reader(open(args.vcf, 'r'))
+    vcf_out = vcf.Writer(open(args.out, 'w'), vcf_in)
 
     for v in vcf_in:
         keep = False
