@@ -41,7 +41,7 @@ def main(args):
         }
         os.system('rm -rf tmp-fastqc')
 
-        if args.baseq:
+        #if args.baseq:
 
     data = pandas.DataFrame(results)
     data.to_csv(args.out)
