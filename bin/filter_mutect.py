@@ -17,12 +17,17 @@ def main(args):
         if args.triallelic_site and 'triallelic_site' in v.FILTER:
             continue
 
+        if args.alt_allele_in_normal and 'alt_allele_in_normal' in v.FILTER:
+            continue
+
+        if args.multi_event_alt_allele_in_normal and 'multi_event_alt_allele_in_normal' in v.FILTER:
+            continue
+
         if float(v.INFO['TLOD']) < args.tlod:
             continue
 
         if float(v.INFO['NLOD']) < args.nlod:
             continue
-
 
         if hasattr(v.samples[0].data,'AD'):
             AD = v.samples[0].data.AD
@@ -37,15 +42,17 @@ def main(args):
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--vcf',type=str,help='VCf file',required=True)
-parser.add_argument('--AD',type=int,help='Min alt-supporting reads',required=True)
-parser.add_argument('--freq',type=float,help='Min frequency',required=True)
-parser.add_argument('--min',type=int,help='Min reads',required=True)
-parser.add_argument('--tlod',type=int,help='Min TLOD',required=True)
-parser.add_argument('--nlod',type=int,help='Min TLOD',required=True)
-parser.add_argument('--out',type=str,help='out vcf file',required=False)
+parser.add_argument('--AD',type=int,help='Min alt-supporting reads',required=False)
+parser.add_argument('--freq',type=float,help='Min frequency',required=False)
+parser.add_argument('--min',type=int,help='Min reads',required=False)
+parser.add_argument('--tlod',type=int,help='Min TLOD',required=False)
+parser.add_argument('--nlod',type=int,help='Min TLOD',required=False)
+parser.add_argument('--out',type=str,help='out vcf file',required=True)
 parser.add_argument('--homologous_mapping_event',action='store_true',help='Remove homologous_mapping_event',required=False)
 parser.add_argument('--clustered_events',action='store_true',help='Remove clustered_events',required=False)
 parser.add_argument('--triallelic_site',action='store_true',help='Remove triallelic_site',required=False)
+parser.add_argument('--alt_allele_in_normal',action='store_true',help='Remove alt_allele_in_normal',required=False)
+parser.add_argument('--multi_event_alt_allele_in_normal',action='store_true',help='Remove multi_event_alt_allele_in_normal',required=False)
 args = parser.parse_args()
 
 main(args=args)
