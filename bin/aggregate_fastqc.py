@@ -14,6 +14,13 @@ def main(args):
     data = zip(args.files,args.samples)
 
     results = {}
+    baseq_median = []
+    baseq_mean = []
+    baseq_10q = []
+    baseq_90q = []
+    baseq_lower_quartile = []
+    baseq_upper_quartile = []
+    bases = []
 
     for d in data:
 
@@ -33,6 +40,9 @@ def main(args):
             'Per sequence quality scores':f['Per sequence quality scores']['status']
         }
         os.system('rm -rf tmp-fastqc')
+
+        if args.baseq:
+
     data = pandas.DataFrame(results)
     data.to_csv(args.out)
 
@@ -40,6 +50,7 @@ parser = argparse.ArgumentParser(description='Aggregates the FastQC results')
 parser.add_argument('--out',type=str,help='Output file name',required=True)
 parser.add_argument('--files',type=str,required=True,nargs='+',help='Space-delimited list of FastQC .zip output files.')
 parser.add_argument('--samples',type=str,required=True,nargs='+',help='Space-delimited list of sample names')
+parser.add_argument('--baseq',action='store_true',required=False,help='Summarize base quality scores')
 args = parser.parse_args()
 
 main(args=args)

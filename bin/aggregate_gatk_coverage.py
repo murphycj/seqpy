@@ -35,6 +35,7 @@ def aggregate_summary(args):
             data = pandas.read_table(fname[0], sep='\t', index_col=0)
 
             if suffix=='sample_statistics':
+
                 results[suffix][sample] = data.ix['sample_test']
             elif suffix=='sample_interval_summary':
                 results[suffix][sample] = data
@@ -44,7 +45,7 @@ def aggregate_summary(args):
                 results[suffix][sample] = data.ix['NSamples_1']
             else:
                 try:
-                    results[suffix][sample] = data.ix['test']
+                    results[suffix][sample] = data.ix[data.index[0]]
                 except:
                     import pdb; pdb.set_trace()
 
@@ -64,13 +65,11 @@ def aggregate_summary(args):
     all_data = pandas.DataFrame(results['sample_cumulative_coverage_counts'])
     all_data.to_csv(args.prefix + '.sample_cumulative_coverage_counts.csv')
 
-    columns = results['sample_interval_summary'].values()[0].columns.tolist()
-
-    for c in columns:
+    for c in ['_total_cvg','_mean_cvg','_granular_Q1','_granular_median','_granular_Q3']:
         r = {}
         for sample, data in results['sample_interval_summary'].items():
 
-            r[sample] = data[c]
+            r[sample] = data[sample + c]
 
         all_data = pandas.DataFrame(r)
         all_data.to_csv(args.prefix + '.sample_interval_summary.' + c + '.csv')

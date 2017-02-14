@@ -13,18 +13,33 @@ from seqpy.parsers import SnpEff, SnpEffInfo
 def main(args):
     vcf_in = vcf.Reader(open(args.vcf,'r'))
     fout = open(args.out,'w')
-    fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,SAMPLE COUNT')
+
+    if args.cosmic:
+        fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,COSMIC,SAMPLE COUNT')
+    else:
+        fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,SAMPLE COUNT')
+
     for s in vcf_in.samples:
         fout.write(',' + s)
     fout.write('\n')
 
     for v in vcf_in:
+        if v.POS==1317599:
+            import pdb; pdb.set_trace()
 
         #loop through all possible mutation annotations for each mutation
 
         genes = []
 
         vinfo = SnpEffInfo(v.INFO)
+
+        if args.cosmic:
+            if v.ID is None:
+                cosmic='-'
+            else:
+                cosmic = str(v.ID)
+        else:
+            cosmic = '-'
 
         if not vinfo.has_ann():
             continue
@@ -62,16 +77,35 @@ def main(args):
                 '&'.join(ann.annotation)
             )
 
-            fout.write(',' + str(n))
+            if args.cosmic:
+                fout.write(',' + cosmic + ',' + str(n))
+            else:
+                fout.write(',' + str(n))
 
             for s in v.samples:
 
                 #if mutation is present, print the mutation frequency
 
                 if s.called:
-                    if args.mutect:
-                        fout.write(',%s (%s/%s)' % (s.data.AF, s.data.AD[1], sum(s.data.AD)))
-                    else:
+                    if args.mutect and args.varscan:
+                        try:
+                            tmp = s.data.AD
+                            while None in tmp:
+                                tmp.remove(None)
+                            fout.write(',%s (%s/%s)' % (s.data.AF, tmp[1], sum(tmp)))
+                        except:
+                            if hasattr(s.data,'FREQ'):
+                                fout.write(',%s (%s/%s)' % (s.data.FREQ, s.data.AD, (s.data.AD + s.data.RD)))
+                            elif hasattr(s.data,'AF'):
+                                fout.write(',%s (NA)' % (s.data.AF))
+                            else:
+                                fout.write('NA')
+                    elif args.mutect:
+                        tmp = s.data.AD
+                        while None in tmp:
+                            tmp.remove(None)
+                        fout.write(',%s (%s/%s)' % (s.data.AF, tmp[1], sum(tmp)))
+                    elif args.varscan:
                         fout.write(',%s (%s/%s)' % (s.data.FREQ, s.data.AD, (s.data.AD + s.data.RD)))
                 else:
                     fout.write(',-')
@@ -111,7 +145,9 @@ parser.add_argument(
         ]
 )
 parser.add_argument('--everything',action='store_true',help='Output all types of variants',required=False)
-parser.add_argument('--mutect',action='store_true',help='input vcf is from Mutect',required=False)
+parser.add_argument('--mutect',action='store_true',help='Input vcf is from Mutect (this and/or --varscan must be set)',required=False)
+parser.add_argument('--varscan',action='store_true',help='Input vcf is from varscan (this and/or --mutect must be set)',required=False)
+parser.add_argument('--cosmic',action='store_true',help='ID column contains COSMIC mutations',required=False)
 parser.add_argument('--out',type=str,help='Collate FPKM values for genes',required=False)
 args = parser.parse_args()
 

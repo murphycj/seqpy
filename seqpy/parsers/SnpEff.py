@@ -38,7 +38,15 @@ EFFECTS = {
     '5_prime_UTR_truncation + exon_loss_variant':2,
     'sequence_feature + exon_loss_variant':2,
     'non_coding_exon_variant':4,
-    '5_prime_UTR_premature_start_codon_gain_variant':3
+    '5_prime_UTR_premature_start_codon_gain_variant':3,
+    'non_coding_transcript_exon_variant':4,
+    'structural_interaction_variant':1,
+    'sequence_feature':2,
+    'exon_loss_variant':2,
+    'conservative_inframe_insertion':3,
+    'conservative_inframe_deletion':3,
+    'non_coding_transcript_variant':4,
+    'protein_protein_contact':1
 }
 
 class _ANN:

@@ -24,41 +24,62 @@ main <- function(args) {
     data <-read.csv(args$data,row.names=1,header=T,check.names=F)
   }
 
-  r <- getBM(attributes=c(args$outtype,args$intype),filters=c(args$intype),values=row.names(data),mart=ensembl)
+  outs = c(args$outtype,args$intype)
+
+  if (!args$no_external_gene_name) {
+    outs <- c(outs,"external_gene_name")
+  }
+
+  if (args$description) {
+    outs <- c(outs,"description")
+  }
+
+  r <- getBM(
+    attributes=outs,
+    filters=c(args$intype),
+    values=row.names(data),
+    mart=ensembl
+  )
+
+  r[is.na(r[,args$outtype]),args$outtype] <- ""
+
+  #for those without a primary output, add the secondary output
+
+  if (!args$no_external_gene_name) {
+    r[r[,args$outtype]=="",args$outtype] <- r[r[,args$outtype]=="","external_gene_name"]
+  }
 
   #deal with non-duplicat genes with no symbol
 
-  r[is.na(r[,1]),1] <- ""
-
-  empty_symbols <- !(duplicated(r[,2]) | duplicated(r[,2], fromLast=TRUE)) & (r[,1]=="")
-  r[empty_symbols,1] <- r[empty_symbols,2]
+  empty_symbols <- !(duplicated(r[,args$intype]) | duplicated(r[,args$intype], fromLast=TRUE)) & (r[,args$outtype]=="")
+  r[empty_symbols,args$outtype] <- r[empty_symbols,args$intype]
 
   #deal with duplicate mapping of entrez id to gene symbols
 
-  dups <- duplicated(r[,2]) | duplicated(r[,2], fromLast=TRUE)
+  dups <- duplicated(r[,args$intype]) | duplicated(r[,args$intype], fromLast=TRUE)
 
-  duplicate_genes <- unique(r[dups,2])
+  duplicate_genes <- unique(r[dups,args$intype])
 
   rows_to_remove <- c()
 
   for (i in duplicate_genes) {
-    temp <- r[r[,2]==i,]
+    temp <- r[r[,args$intype]==i,]
 
     #if one all gene symbols except one is non-empty use that one
 
-    if ((nrow(temp) - sum(temp[,1]==""))==1) {
-      new_symbol <- temp[temp[,1]!="",]
+    if ((nrow(temp) - sum(temp[,args$outtype]==""))==1) {
+      new_symbol <- temp[temp[,args$outtype]!="",]
 
-      remove <- temp[temp[,1]=="",]
+      remove <- temp[temp[,args$outtype]=="",]
 
       rows_to_remove <- c(rows_to_remove,row.names(remove))
 
-      r[row.names(new_symbol),1] <- new_symbol[,1]
+      r[row.names(new_symbol),args$outtype] <- new_symbol[,args$outtype]
     } else {
 
       #else replace gene symbols with entrez gene id
 
-      r[row.names(temp),1] <- temp[,2]
+      r[row.names(temp),args$outtype] <- temp[,args$intype]
 
       rows_to_remove <- c(rows_to_remove,row.names(temp)[-1])
     }
@@ -68,17 +89,32 @@ main <- function(args) {
 
   #deal with duplicate gene symbols by replacing symbol with entrez
 
-  dups <- duplicated(r[,1]) | duplicated(r[,1], fromLast=TRUE)
+  dups <- duplicated(r[,args$outtype]) | duplicated(r[,args$outtype], fromLast=TRUE)
 
-  r[dups,1] <- r[dups,2]
+  r[dups,args$outtype] <- r[dups,args$intype]
 
-  r.not <- unique(setdiff(row.names(data),r[,2]))
+  r.not <- unique(setdiff(row.names(data),r[,args$intype]))
 
-  data <- data[c(r[,2],r.not),]
+  data <- data[c(r[,args$intype],r.not),]
 
   #replace old names and save
 
-  row.names(data) <- c(r[,1],r.not)
+  row.names(data) <- c(r[,args$outtype],r.not)
+
+  #add description if needed
+
+  if (args$description) {
+
+    column_names <- colnames(data)
+
+    r[,"description"] <- gsub(",",";",r[,"description"])
+
+    data["description"] <- c(r[,"description"],rep("",length(r.not)))
+
+    column_names <- c("description",column_names)
+
+    data <- data[,column_names]
+  }
 
   write.csv(data,args$out,quote=F)
 
@@ -107,6 +143,12 @@ parser$add_argument(
   help="Biomart output type (e.g. mgi_symbol, hgnc_symbol)"
 )
 parser$add_argument(
+  "-no_external_gene_name",
+  action="store_true",
+  default=FALSE,
+  help="For ensembl ids without gene symbol do not use external_gene_name (default false)."
+)
+parser$add_argument(
   "-dataset",
   type="character",
   help="Biomart dataset to use (e.g. mmusculus_gene_ensembl, hsapiens_gene_ensembl)"
@@ -115,6 +157,12 @@ parser$add_argument(
   "-out",
   type="character",
   help="The new output file name."
+)
+parser$add_argument(
+  "-description",
+  action="store_true",
+  default=FALSE,
+  help="Add gene descriptions (default false)"
 )
 
 args <- parser$parse_args()
