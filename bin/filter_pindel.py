@@ -32,7 +32,7 @@ def main(args):
             vaf = AD[1] / float(sum(AD))
             if sum(AD) < args.min_normal or vaf > args.max_normal_vaf:
                 continue
-            if AD[1] > args.max_normal_AD:
+            if args.max_normal_AD != -1 and AD[1] > args.max_normal_AD:
                 continue
         else:
             print 'Site does not have AD attr'
