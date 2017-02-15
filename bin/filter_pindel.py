@@ -107,7 +107,7 @@ parser.add_argument(
 parser.add_argument(
     '--max_normal_vaf',
     type=float,
-    help='Max variant allele frequency in normal (default 1%)',
+    help='Max variant allele frequency in normal (default 0.01)',
     default=0.01,
     required=False
 )
