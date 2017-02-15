@@ -29,7 +29,10 @@ def main(args):
 
         if hasattr(v.samples[normal_index].data, 'AD'):
             AD = v.samples[normal_index].data.AD
-            if sum(AD) < args.min_normal:
+            vaf = AD[1] / float(sum(AD))
+            if sum(AD) < args.min_normal or vaf > args.max_normal_vaf:
+                continue
+            if AD[1] > args.max_normal_AD:
                 continue
         else:
             print 'Site does not have AD attr'
@@ -99,6 +102,20 @@ parser.add_argument(
     type=int,
     help='Min coverage in normal (default 12)',
     default=12,
+    required=False
+)
+parser.add_argument(
+    '--max_normal_vaf',
+    type=float,
+    help='Max variant allele frequency in normal (default 1%)',
+    default=0.01,
+    required=False
+)
+parser.add_argument(
+    '--max_normal_AD',
+    type=int,
+    help='Maximum number of mutant-supporting reads in normal (default none)',
+    default=-1,
     required=False
 )
 parser.add_argument(
