@@ -29,7 +29,10 @@ def main(args):
 
         if hasattr(v.samples[normal_index].data, 'AD'):
             AD = v.samples[normal_index].data.AD
-            vaf = AD[1] / float(sum(AD))
+            if sum(AD) != 0:
+                vaf = AD[1] / float(sum(AD))
+            else:
+                vaf = 0.0
             if sum(AD) < args.min_normal or vaf > args.max_normal_vaf:
                 continue
             if args.max_normal_AD != -1 and AD[1] > args.max_normal_AD:
