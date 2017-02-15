@@ -7,27 +7,25 @@ have which mutations
 
 import vcf
 import argparse
-from seqpy.parsers import SnpEff, SnpEffInfo
+from seqpy.parsers import SnpEff, SnpEffInfo, VAF
 
 
 def main(args):
-    vcf_in = vcf.Reader(open(args.vcf,'r'))
-    fout = open(args.out,'w')
+    vcf_in = vcf.Reader(open(args.vcf, 'r'))
+    fout = open(args.out, 'w')
 
     if args.cosmic:
         fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,COSMIC,SAMPLE COUNT')
     else:
         fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,SAMPLE COUNT')
 
-    for s in vcf_in.samples:
-        fout.write(',' + s)
+    for sample in vcf_in.samples:
+        fout.write(',' + sample)
     fout.write('\n')
 
     for v in vcf_in:
-        if v.POS==1317599:
-            import pdb; pdb.set_trace()
 
-        #loop through all possible mutation annotations for each mutation
+        # loop through all possible mutation annotations for each mutation
 
         genes = []
 
@@ -35,30 +33,31 @@ def main(args):
 
         if args.cosmic:
             if v.ID is None:
-                cosmic='-'
+                cosmic = '-'
             else:
                 cosmic = str(v.ID)
         else:
             cosmic = '-'
 
         if not vinfo.has_ann():
+            print 'No annotation, skipping: ' + str(v)
             continue
 
-        #get the total number of samples with the mutation
+        # get the total number of samples with the mutation
 
-        n=0
-        for s in v.samples:
-            if s.called:
-                n+=1
+        n = 0
+        for sample in v.samples:
+            if sample.called:
+                n += 1
 
         for ann in vinfo.ann:
 
             if (not args.everything):
-                has_right_annotation=False
+                has_right_annotation = False
 
                 for a in ann.annotation:
                     if a in args.filter_effects:
-                        has_right_annotation=True
+                        has_right_annotation = True
 
                 if not has_right_annotation:
                     continue
@@ -82,31 +81,26 @@ def main(args):
             else:
                 fout.write(',' + str(n))
 
-            for s in v.samples:
+            for sample in v.samples:
 
-                #if mutation is present, print the mutation frequency
+                # if mutation is present, print the mutation frequency
 
-                if s.called:
-                    if args.mutect and args.varscan:
-                        try:
-                            tmp = s.data.AD
-                            while None in tmp:
-                                tmp.remove(None)
-                            fout.write(',%s (%s/%s)' % (s.data.AF, tmp[1], sum(tmp)))
-                        except:
-                            if hasattr(s.data,'FREQ'):
-                                fout.write(',%s (%s/%s)' % (s.data.FREQ, s.data.AD, (s.data.AD + s.data.RD)))
-                            elif hasattr(s.data,'AF'):
-                                fout.write(',%s (NA)' % (s.data.AF))
-                            else:
-                                fout.write('NA')
-                    elif args.mutect:
-                        tmp = s.data.AD
-                        while None in tmp:
-                            tmp.remove(None)
-                        fout.write(',%s (%s/%s)' % (s.data.AF, tmp[1], sum(tmp)))
-                    elif args.varscan:
-                        fout.write(',%s (%s/%s)' % (s.data.FREQ, s.data.AD, (s.data.AD + s.data.RD)))
+                if sample.called:
+                    vaf = VAF(
+                        sample=sample,
+                        mutect=args.mutect,
+                        varscan=args.varscan,
+                        pindel=args.pindel
+                    )
+                    import pdb; pdb.set_trace()
+                    fout.write(
+                        ',%s (%s/%s)' %
+                        (
+                            round(vaf.freq, 4),
+                            vaf.mutant,
+                            vaf.mutant + vaf.reference,
+                        )
+                    )
                 else:
                     fout.write(',-')
             fout.write('\n')
@@ -114,19 +108,27 @@ def main(args):
 
 
 parser = argparse.ArgumentParser(description='')
-parser.add_argument('--vcf',type=str,help='Meta-directory where each sub-directory contains fpkm for each sample',required=True)
+parser.add_argument(
+    '--vcf',
+    type=str,
+    help='Meta-directory where each sub-directory contains fpkm for ' +
+         'each sample',
+    required=True
+)
 parser.add_argument(
     '--filter_effects',
     type=str,
     nargs='+',
     required=False,
-    help='Space-delimited list of variant types to include in output (default: ' + \
-    'missense_variant frameshift_variant start_lost stop_gained ' + \
-    '5_prime_UTR_premature_start_codon_gain_variant nonsense_mediated_decay ' + \
-    'inframe_insertion disruptive_inframe_insertion inframe_deletion disruptive_inframe_deletion ' + \
-    'rare_amino_acid_variant splice_acceptor_variant splice_donor_variant ' + \
-    'stop_lost non_coding_exon_variant). Use --filter_effects none if you wanted to include all effects',
-    default = [
+    help='Space-delimited list of variant types to include in output ' +
+    '(default: missense_variant frameshift_variant start_lost stop_gained ' +
+    '5_prime_UTR_premature_start_codon_gain_variant nonsense_mediated_decay ' +
+    'inframe_insertion disruptive_inframe_insertion inframe_deletion ' +
+    'disruptive_inframe_deletion rare_amino_acid_variant ' +
+    'splice_acceptor_variant splice_donor_variant ' +
+    'stop_lost non_coding_exon_variant). Use --filter_effects ' +
+    'none if you wanted to include all effects',
+    default=[
         'missense_variant',
         'frameshift_variant',
         'start_lost',
@@ -144,11 +146,42 @@ parser.add_argument(
         'non_coding_exon_variant'
         ]
 )
-parser.add_argument('--everything',action='store_true',help='Output all types of variants',required=False)
-parser.add_argument('--mutect',action='store_true',help='Input vcf is from Mutect (this and/or --varscan must be set)',required=False)
-parser.add_argument('--varscan',action='store_true',help='Input vcf is from varscan (this and/or --mutect must be set)',required=False)
-parser.add_argument('--cosmic',action='store_true',help='ID column contains COSMIC mutations',required=False)
-parser.add_argument('--out',type=str,help='Collate FPKM values for genes',required=False)
+parser.add_argument(
+    '--everything',
+    action='store_true',
+    help='Output all types of variants',
+    required=False
+)
+parser.add_argument(
+    '--mutect',
+    action='store_true',
+    help='Input vcf is from Mutect (this and/or --varscan must be set)',
+    required=False
+)
+parser.add_argument(
+    '--varscan',
+    action='store_true',
+    help='Input vcf is from varscan (this and/or --mutect must be set)',
+    required=False
+)
+parser.add_argument(
+    '--pindel',
+    action='store_true',
+    help='Input vcf contains indel calls from Pindel.',
+    required=False
+)
+parser.add_argument(
+    '--cosmic',
+    action='store_true',
+    help='ID column contains COSMIC mutations',
+    required=False
+)
+parser.add_argument(
+    '--out',
+    type=str,
+    help='Out file name',
+    required=False
+)
 args = parser.parse_args()
 
 main(args=args)
