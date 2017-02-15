@@ -92,7 +92,6 @@ def main(args):
                         varscan=args.varscan,
                         pindel=args.pindel
                     )
-                    import pdb; pdb.set_trace()
                     fout.write(
                         ',%s (%s/%s)' %
                         (
