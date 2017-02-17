@@ -2,3 +2,4 @@ build/
 dist/
 seqpy.egg-info/
 .DS_Store
+**.pyc
