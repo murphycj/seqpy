@@ -62,7 +62,7 @@ def main(args):
                 if not has_right_annotation:
                     continue
 
-            #if has effect that is desired, print it
+            # if has effect that is desired, print it
 
             fout.write(
                 str(v.CHROM) + ',' +
@@ -92,14 +92,17 @@ def main(args):
                         varscan=args.varscan,
                         pindel=args.pindel
                     )
-                    fout.write(
-                        ',%s (%s/%s)' %
-                        (
-                            round(vaf.freq, 4),
-                            vaf.mutant,
-                            vaf.mutant + vaf.reference,
+                    try:
+                        fout.write(
+                            ',%s (%s/%s)' %
+                            (
+                                round(vaf.freq, 4),
+                                vaf.mutant,
+                                vaf.mutant + vaf.reference,
+                            )
                         )
-                    )
+                    except:
+                        import pdb; pdb.set_trace()
                 else:
                     fout.write(',-')
             fout.write('\n')

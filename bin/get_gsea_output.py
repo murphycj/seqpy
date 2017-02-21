@@ -1,9 +1,9 @@
 import argparse
-from seqpy import gsea
+from seqpy import parsers
 
 
 def main(args):
-    g = gsea.GSEA(args.indir,args.out)
+    g = parsers.GSEA(args.indir, args.out)
 
     if args.reverse:
         g.parse_pathway_excel(reverse=True)
