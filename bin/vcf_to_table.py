@@ -7,7 +7,7 @@ have which mutations
 
 import vcf
 import argparse
-from seqpy.parsers import SnpEff, SnpEffInfo, VAF
+from seqpy.parsers import SnpEffInfo, VAF
 
 
 def main(args):
