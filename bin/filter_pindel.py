@@ -21,25 +21,26 @@ def main(args):
         for i in samples:
             if i == args.tumor:
                 tumor_index = n
-            if i == args.normal:
+            if args.normal is not None and i == args.normal:
                 normal_index = n
             n += 1
 
         # check minimum coverage in normal
 
-        if hasattr(v.samples[normal_index].data, 'AD'):
-            AD = v.samples[normal_index].data.AD
-            if sum(AD) != 0:
-                vaf = AD[1] / float(sum(AD))
+        if args.normal is not None:
+            if hasattr(v.samples[normal_index].data, 'AD'):
+                AD = v.samples[normal_index].data.AD
+                if sum(AD) != 0:
+                    vaf = AD[1] / float(sum(AD))
+                else:
+                    vaf = 0.0
+                if sum(AD) < args.min_normal or vaf > args.max_normal_vaf:
+                    continue
+                if args.max_normal_AD != -1 and AD[1] > args.max_normal_AD:
+                    continue
             else:
-                vaf = 0.0
-            if sum(AD) < args.min_normal or vaf > args.max_normal_vaf:
-                continue
-            if args.max_normal_AD != -1 and AD[1] > args.max_normal_AD:
-                continue
-        else:
-            print 'Site does not have AD attr'
-            print v
+                print 'Site does not have AD attr'
+                print v
 
         # check minimum coverage in tumor
 
@@ -75,8 +76,8 @@ parser.add_argument(
 parser.add_argument(
     '--normal',
     type=str,
-    help='Tumor sample name (default NORMAL)',
-    default='NORMAL',
+    help='Tumor sample name (default no normal sample)',
+    default=None,
     required=False
 )
 parser.add_argument(
