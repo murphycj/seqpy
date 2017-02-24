@@ -24,9 +24,9 @@ main <- function(args) {
     mainFactor=factor(c(
       rep(phenotype[1],length(group1)),
       rep(phenotype[2],length(group2))
-      )
+      ),
+      levels=phenotype
     ),
-    levels=phenotype,
     row.names=colnames(data)
   )
   countTable <- DESeqDataSetFromMatrix(
