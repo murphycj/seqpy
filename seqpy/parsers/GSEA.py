@@ -4,13 +4,14 @@ import os
 import numpy as np
 import glob
 
+
 class GSEA():
     """
     class to store and parse GSEA results
 
     """
 
-    def __init__(self,directory='',name=''):
+    def __init__(self, directory='', name=''):
         """
         directory: the directory containing the full GSEA result files
 
@@ -20,7 +21,7 @@ class GSEA():
 
         self.directory = directory
 
-    def _check_for_nas(self,table):
+    def _check_for_nas(self, table):
         """
         Sometimes GSEA shows that significant pathways have NA for p-value
         """
@@ -31,23 +32,23 @@ class GSEA():
             print 'NAs found for NOM p-val for significant pathways in:'
             print '\t\t' + self.directory
 
-            for i in range(0,len(table.index)):
+            for i in range(0, len(table.index)):
                 if pandas.isnull(table.ix[indices[i]]['NOM p-val']):
                     were_there_nas = True
                     j = i
                     while pandas.isnull(table.ix[indices[j]]['NOM p-val']):
-                        j+=1
+                        j += 1
                         if j == max(indices):
                             break
-                    table.loc[indices[i],'NOM p-val'] = table['NOM p-val'][indices[j]]
-                    if table.ix[indices[i]]['FDR q-val']==1:
-                        table.loc[indices[i],'FDR q-val'] = table['FDR q-val'][indices[j]]
+                    table.loc[indices[i], 'NOM p-val'] = table['NOM p-val'][indices[j]]
+                    if table.ix[indices[i]]['FDR q-val'] == 1:
+                        table.loc[indices[i], 'FDR q-val'] = table['FDR q-val'][indices[j]]
                     if pandas.isnull(table.ix[indices[i]]['NES']):
-                        table.loc[indices[i],'NES'] = table['NES'][indices[j]]
+                        table.loc[indices[i], 'NES'] = table['NES'][indices[j]]
 
         return table
 
-    def parse_pathway_excel(self,reverse=False):
+    def parse_pathway_excel(self, reverse=False, leadingEdge=False):
         self.up_pathways = None
         self.down_pathways = None
 
@@ -56,34 +57,63 @@ class GSEA():
         else:
             up = glob.glob(self.directory + '/gsea_report_for_na_pos_*xls')
 
-        assert len(up)==1, "No up-regulated pathway files found"
+        assert len(up) == 1, "No up-regulated pathway files found"
 
         if reverse:
             down = glob.glob(self.directory + '/gsea_report_for_na_pos_*xls')
         else:
             down = glob.glob(self.directory + '/gsea_report_for_na_neg_*xls')
 
-        assert len(down)==1, "No down-regulated pathway files found"
+        assert len(down) == 1, "No down-regulated pathway files found"
 
-
-        self.up_pathways = pandas.read_table(up[0],sep='\t')
+        self.up_pathways = pandas.read_table(up[0], sep='\t')
         del self.up_pathways['Unnamed: 11']
 
         self.up_pathways = self._check_for_nas(self.up_pathways)
 
         self.up_pathways = self.up_pathways.fillna('')
 
-        self.down_pathways = pandas.read_table(down[0],sep='\t')
+        self.down_pathways = pandas.read_table(down[0], sep='\t')
         del self.down_pathways['Unnamed: 11']
 
         self.down_pathways = self._check_for_nas(self.down_pathways)
 
         self.down_pathways = self.down_pathways.fillna('')
 
-    def write_to_excel(self,outfile,up_tab_name='up',down_tab_name='down'):
+        if leadingEdge:
 
-        assert len(up_tab_name)<=31,'name of excel tab has to be less than 31 characters'
-        assert len(down_tab_name)<=31,'name of excel tab has to be less than 31 characters'
+            num_in_leading_edge = []
+
+            for pathway in self.down_pathways['NAME'].tolist():
+                pathway = os.path.join(self.directory, pathway + '.xls')
+                if not os.path.exists(pathway):
+                    print 'Count not find ' + pathway
+                    n = 'NA'
+                else:
+                    tmp = pandas.read_table(pathway, sep='\t')
+                    n = tmp[tmp['CORE ENRICHMENT'] == 'Yes'].shape[0]
+                num_in_leading_edge.append(n)
+
+            self.down_pathways['NUM_IN_LEADING_EDGE'] = num_in_leading_edge
+
+            num_in_leading_edge = []
+
+            for pathway in self.up_pathways['NAME'].tolist():
+                pathway = os.path.join(self.directory, pathway + '.xls')
+                if not os.path.exists(pathway):
+                    print 'Count not find ' + pathway
+                    n = 'NA'
+                else:
+                    tmp = pandas.read_table(pathway, sep='\t')
+                    n = tmp[tmp['CORE ENRICHMENT'] == 'Yes'].shape[0]
+                num_in_leading_edge.append(n)
+
+            self.up_pathways['NUM_IN_LEADING_EDGE'] = num_in_leading_edge
+
+    def write_to_excel(self, outfile, up_tab_name='up', down_tab_name='down'):
+
+        assert len(up_tab_name) <= 31, 'name of excel tab has to be less than 31 characters'
+        assert len(down_tab_name) <= 31, 'name of excel tab has to be less than 31 characters'
 
         workbook = xlsxwriter.Workbook(outfile)
 
