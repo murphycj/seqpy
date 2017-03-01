@@ -48,7 +48,8 @@ class GSEA():
 
         return table
 
-    def parse_pathway_excel(self, reverse=False, leadingEdge=False):
+    def parse_pathway_excel(self, reverse=False, leadingEdge=False,
+                            leadingEdgeGenes=False, allGenes=False):
         self.up_pathways = None
         self.down_pathways = None
 
@@ -80,35 +81,61 @@ class GSEA():
 
         self.down_pathways = self.down_pathways.fillna('')
 
+        num_in_leading_edge = []
+        all_genes = []
+        leading_edge_genes = []
+
+        for pathway in self.down_pathways['NAME'].tolist():
+            pathway = os.path.join(self.directory, pathway + '.xls')
+            if not os.path.exists(pathway):
+                n = 'NA'
+                tmp_leading_edge_genes = ''
+                tmp_all_genes = ''
+            else:
+                tmp = pandas.read_table(pathway, sep='\t')
+                n = tmp[tmp['CORE ENRICHMENT'] == 'Yes'].shape[0]
+                tmp_leading_edge_genes = tmp[tmp['CORE ENRICHMENT'] == 'Yes']['PROBE'].tolist()
+                tmp_leading_edge_genes = ';'.join(tmp_leading_edge_genes)
+                tmp_all_genes = ';'.join(tmp['PROBE'].tolist())
+
+            num_in_leading_edge.append(n)
+            leading_edge_genes.append(tmp_leading_edge_genes)
+            all_genes.append(tmp_all_genes)
+
         if leadingEdge:
-
-            num_in_leading_edge = []
-
-            for pathway in self.down_pathways['NAME'].tolist():
-                pathway = os.path.join(self.directory, pathway + '.xls')
-                if not os.path.exists(pathway):
-                    print 'Count not find ' + pathway
-                    n = 'NA'
-                else:
-                    tmp = pandas.read_table(pathway, sep='\t')
-                    n = tmp[tmp['CORE ENRICHMENT'] == 'Yes'].shape[0]
-                num_in_leading_edge.append(n)
-
             self.down_pathways['NUM_IN_LEADING_EDGE'] = num_in_leading_edge
+        if leadingEdgeGenes:
+            self.down_pathways['LEADING_EDGE_GENES'] = leading_edge_genes
+        if allGenes:
+            self.down_pathways['ALL_EDGE_GENES'] = all_genes
 
-            num_in_leading_edge = []
+        num_in_leading_edge = []
+        all_genes = []
+        leading_edge_genes = []
 
-            for pathway in self.up_pathways['NAME'].tolist():
-                pathway = os.path.join(self.directory, pathway + '.xls')
-                if not os.path.exists(pathway):
-                    print 'Count not find ' + pathway
-                    n = 'NA'
-                else:
-                    tmp = pandas.read_table(pathway, sep='\t')
-                    n = tmp[tmp['CORE ENRICHMENT'] == 'Yes'].shape[0]
-                num_in_leading_edge.append(n)
+        for pathway in self.up_pathways['NAME'].tolist():
+            pathway = os.path.join(self.directory, pathway + '.xls')
+            if not os.path.exists(pathway):
+                n = 'NA'
+                tmp_leading_edge_genes = ''
+                tmp_all_genes = ''
+            else:
+                tmp = pandas.read_table(pathway, sep='\t')
+                n = tmp[tmp['CORE ENRICHMENT'] == 'Yes'].shape[0]
+                tmp_leading_edge_genes = tmp[tmp['CORE ENRICHMENT'] == 'Yes']['PROBE'].tolist()
+                tmp_leading_edge_genes = ';'.join(tmp_leading_edge_genes)
+                tmp_all_genes = ';'.join(tmp['PROBE'].tolist())
 
+            num_in_leading_edge.append(n)
+            leading_edge_genes.append(tmp_leading_edge_genes)
+            all_genes.append(tmp_all_genes)
+
+        if leadingEdge:
             self.up_pathways['NUM_IN_LEADING_EDGE'] = num_in_leading_edge
+        if leadingEdgeGenes:
+            self.up_pathways['LEADING_EDGE_GENES'] = leading_edge_genes
+        if allGenes:
+            self.up_pathways['ALL_EDGE_GENES'] = all_genes
 
     def write_to_excel(self, outfile, up_tab_name='up', down_tab_name='down'):
 

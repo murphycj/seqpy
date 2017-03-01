@@ -6,9 +6,19 @@ def main(args):
     g = parsers.GSEA(args.indir, args.out)
 
     if args.reverse:
-        g.parse_pathway_excel(reverse=True, leadingEdge=args.leadingEdge)
+        g.parse_pathway_excel(
+            reverse=True,
+            leadingEdge=args.leadingEdge,
+            leadingEdgeGenes=args.leadingEdgeGenes,
+            allGenes=args.allGenes
+        )
     else:
-        g.parse_pathway_excel(reverse=False, leadingEdge=args.leadingEdge)
+        g.parse_pathway_excel(
+            reverse=False,
+            leadingEdge=args.leadingEdge,
+            leadingEdgeGenes=args.leadingEdgeGenes,
+            allGenes=args.allGenes
+        )
 
     g.write_to_excel(args.out + '.xlsx')
 
@@ -44,6 +54,20 @@ parser.add_argument(
     action='store_true',
     help='(Optional) Include in the output the number of genes in the ' +
          'leading edge gene set.',
+    required=False
+)
+parser.add_argument(
+    '--leadingEdgeGenes',
+    action='store_true',
+    help='(Optional) Include in the output all the genes in the leading ' +
+         'leading edge gene set.',
+    required=False
+)
+parser.add_argument(
+    '--allGenes',
+    action='store_true',
+    help='(Optional) Include in the output the genes in the ' +
+         ' gene set.',
     required=False
 )
 parser.add_argument('--out', type=str, help='Output prefix', required=True)
