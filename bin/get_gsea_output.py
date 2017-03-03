@@ -1,9 +1,17 @@
+import os
+import sys
 import argparse
 from seqpy import parsers
 
 
 def main(args):
-    g = parsers.GSEA(args.indir, args.out)
+
+    if args.zip:
+        os.mkdir('tmpGSEA')
+        os.system('unzip ' + args.indir + ' -d tmpGSEA')
+        g = parsers.GSEA('./tmpGSEA', args.out)
+    else:
+        g = parsers.GSEA(args.indir, args.out)
 
     if args.reverse:
         g.parse_pathway_excel(
@@ -22,6 +30,8 @@ def main(args):
 
     g.write_to_excel(args.out + '.xlsx')
 
+    if args.zip:
+        os.system('rm -rf tmpGSEA')
 
 parser = argparse.ArgumentParser(description='Get the gsea output.')
 parser.add_argument(
@@ -29,6 +39,12 @@ parser.add_argument(
     type=str,
     help='directory containing results',
     required=True
+)
+parser.add_argument(
+    '--zip',
+    action='store_true',
+    help='(Optional) The provided GSEA output directory is a zip file ',
+    required=False
 )
 parser.add_argument(
     '--reverse',
