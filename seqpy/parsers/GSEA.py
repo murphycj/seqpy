@@ -107,7 +107,7 @@ class GSEA():
         if leadingEdgeGenes:
             self.down_pathways['LEADING_EDGE_GENES'] = leading_edge_genes
         if allGenes:
-            self.down_pathways['ALL_EDGE_GENES'] = all_genes
+            self.down_pathways['ALL_GENES'] = all_genes
 
         num_in_leading_edge = []
         all_genes = []
