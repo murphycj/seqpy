@@ -13,29 +13,26 @@ def count_context(args):
     for line in sys.stdin:
         if line.find('mpileup') != -1:
             continue
-        try:
-            line = line.rstrip().split('\t')
-            depth = int(line[3])
-            reference = line[2].lower()
+            
+        line = line.rstrip().split('\t')
+        depth = int(line[3])
+        reference = line[2].lower()
 
-            kmer[0] = kmer[1]
-            kmer[1] = kmer[2]
-            kmer[2] = reference
+        kmer[0] = kmer[1]
+        kmer[1] = kmer[2]
+        kmer[2] = reference
 
-            depths[0] = depths[1]
-            depths[1] = depths[2]
-            depths[2] = depth
+        depths[0] = depths[1]
+        depths[1] = depths[2]
+        depths[2] = depth
 
-            if (depths[0] >= args.n) and \
-                (depths[1] >= args.n) and \
-                (depths[2] >= args.n) and \
-                (kmer[0] != 'n') and \
-                (kmer[1] != 'n') and \
-                (kmer[2] != 'n'):
-                kmers[''.join(kmer)] += 1
-                print ''.join(kmer)
-        except:
-            import pdb; pdb.set_trace()
+        if (depths[0] >= args.n) and \
+            (depths[1] >= args.n) and \
+            (depths[2] >= args.n) and \
+            (kmer[0] != 'n') and \
+            (kmer[1] != 'n') and \
+            (kmer[2] != 'n'):
+            kmers[''.join(kmer)] += 1
 
     fout = open(args.output, 'w')
     fout.write('context,count\n')
