@@ -13,7 +13,7 @@ def count_context(args):
     for line in sys.stdin:
         if line.find('mpileup') != -1:
             continue
-            
+
         line = line.rstrip().split('\t')
         depth = int(line[3])
         reference = line[2].lower()
@@ -26,9 +26,7 @@ def count_context(args):
         depths[1] = depths[2]
         depths[2] = depth
 
-        if (depths[0] >= args.n) and \
-            (depths[1] >= args.n) and \
-            (depths[2] >= args.n) and \
+        if (depths[1] >= args.n) and \
             (kmer[0] != 'n') and \
             (kmer[1] != 'n') and \
             (kmer[2] != 'n'):
