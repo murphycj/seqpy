@@ -32,7 +32,7 @@ def main(args):
         if float(v.INFO['TLOD']) < args.tlod:
             continue
 
-        if not nonpaired and float(v.INFO['NLOD']) < args.nlod:
+        if not args.nonpaired and float(v.INFO['NLOD']) < args.nlod:
             continue
 
         # get sample index
@@ -48,7 +48,7 @@ def main(args):
 
         # check minimum coverage in normal
 
-        if not nonpaired:
+        if not args.nonpaired:
             if hasattr(v.samples[normal_index].data, 'AD'):
                 AD = v.samples[normal_index].data.AD
                 if sum(AD) < args.min_normal:
