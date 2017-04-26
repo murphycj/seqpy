@@ -32,7 +32,7 @@ def main(args):
         if float(v.INFO['TLOD']) < args.tlod:
             continue
 
-        if float(v.INFO['NLOD']) < args.nlod:
+        if not nonpaired and float(v.INFO['NLOD']) < args.nlod:
             continue
 
         # get sample index
