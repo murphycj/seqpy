@@ -8,7 +8,6 @@ using the given parameters. Tailored for RNA-seq data
 """
 
 import vcf
-import multiprocessing
 import sys
 import pandas
 import os

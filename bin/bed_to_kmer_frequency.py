@@ -3,7 +3,6 @@ import pandas
 import argparse
 import os
 import sys
-import multiprocessing
 from itertools import islice, product
 
 

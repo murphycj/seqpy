@@ -42,19 +42,20 @@ def main(args):
         for i in samples:
             if i == args.tumor:
                 tumor_index = n
-            if i == args.normal:
+            if not args.nonpaired and i == args.normal:
                 normal_index = n
             n += 1
 
         # check minimum coverage in normal
 
-        if hasattr(v.samples[normal_index].data, 'AD'):
-            AD = v.samples[normal_index].data.AD
-            if sum(AD) < args.min_normal:
-                continue
-        else:
-            print 'Site does not have AD attr'
-            print v
+        if not nonpaired:
+            if hasattr(v.samples[normal_index].data, 'AD'):
+                AD = v.samples[normal_index].data.AD
+                if sum(AD) < args.min_normal:
+                    continue
+            else:
+                print 'Site does not have AD attr'
+                print v
 
         # check minimum coverage in tumor
 
@@ -90,6 +91,12 @@ parser.add_argument(
     type=str,
     help='Tumor sample name (default NORMAL)',
     default='NORMAL',
+    required=False
+)
+parser.add_argument(
+    '--nonpaired',
+    action='store_true',
+    help='Mutect file is from running on single sample (not tumor-normal paired).',
     required=False
 )
 parser.add_argument(

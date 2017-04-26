@@ -63,9 +63,12 @@ class SomaticMutations(object):
         self.data = None
         self.samples = None
 
-    def parse_deleterious_types(self):
+    def parse_deleterious_types(self,samples=None):
         vcf_in = vcf.Reader(open(self.filename, 'r'))
-        self.data = {i: [] for i in vcf_in.samples}
+        if samples is not None:
+            self.data = {i: [] for i in samples}
+        else:
+            self.data = {i: [] for i in vcf_in.samples}
         types = []
 
         for variant in vcf_in:
@@ -123,7 +126,7 @@ class SomaticMutations(object):
                 sys.exit()
 
             for s in variant.samples:
-                if s.called:
+                if s.called and s.sample in self.data:
                     self.data[s.sample] += mutation_type
 
         self.samples = self.data.keys()

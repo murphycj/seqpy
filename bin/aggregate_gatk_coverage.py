@@ -36,7 +36,7 @@ def aggregate_summary(args):
 
             if suffix=='sample_statistics':
 
-                results[suffix][sample] = data.ix['sample_test']
+                results[suffix][sample] = data.ix['sample_' + sample]
             elif suffix=='sample_interval_summary':
                 results[suffix][sample] = data
             elif suffix=='sample_interval_statistics':
