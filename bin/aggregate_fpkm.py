@@ -20,22 +20,25 @@ def main(args):
 
     for d in data:
 
-        fpkm_data = pandas.read_table(d[0], sep='\t', index_col=0)
+        fpkm_data = pandas.read_table(d[0], sep='\t')
+        genes += fpkm_data['tracking_id'].tolist()
+        temp2 = pandas.DataFrame(fpkm_data[['tracking_id','FPKM']])
 
-
-        if args.remove_duplicates:
-            genes += fpkm_data.index.tolist()
-            temp2 = pandas.DataFrame(fpkm_data['FPKM'])
-            temp2['index'] = temp2.index
-            temp2.drop_duplicates(subset='index', take_last=True, inplace=True)
-            del temp2['index']
-            results[d[1]] = temp2
+        if args.duplicates=='random':
+            temp2.drop_duplicates(subset='tracking_id', take_last=True, inplace=True)
+            temp2.index = temp2['tracking_id']
+            results[d[1]] = temp2['FPKM']
+        elif args.duplicates=='highest':
+            temp2 = temp2.groupby('tracking_id',group_keys=False).apply(lambda x: x.ix[x.FPKM.idxmax()])
+            temp2.index = temp2['tracking_id']
+            results[d[1]] = temp2['FPKM']
         else:
-            pass
-
+            print 'Nothing done!'
+            sys.exit()
         samples.append(d[1])
 
     genes = list(set(genes))
+
     for s, fpkm_data in results.items():
         results[s] = fpkm_data.ix[genes]
 
@@ -62,12 +65,10 @@ parser.add_argument(
     help='Space-delimited list of sample names'
 )
 parser.add_argument(
-    '--remove_duplicates',
-    action='store_true',
-    help='Remove duplicate gene names (default True), ' + \
-         'otherwise keep duplicate gene names by indexing them (e.g.' + \
-         'TP53-1,TP53-2,...)',
-    default=True,
+    '--duplicates',
+    type=str,
+    help='How to handle duplicates: random (randomly select one), index (e.g. TP53-1,TP53-2,...), or highest (default, take one with highest FPKM).',
+    default='highest',
     required=False
 )
 parser.add_argument(
@@ -77,5 +78,9 @@ parser.add_argument(
     help='Output file name'
 )
 args = parser.parse_args()
+
+if args.duplicates not in ['random','highest','index']:
+    print 'Select one of: random, highest, or index for --duplicates.'
+    sys.exit()
 
 main(args=args)
