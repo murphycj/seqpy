@@ -21,7 +21,7 @@ parser.add_argument(
 parser.add_argument(
     '--type',
     type=str,
-    required=Flase,
+    required=False,
     default='MEAN_INSERT_SIZE',
     help='(optional) What metric to print (default MEAN_INSERT_SIZE)'
 )

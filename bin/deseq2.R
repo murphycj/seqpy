@@ -29,13 +29,17 @@ main <- function(args) {
     ),
     row.names=colnames(data)
   )
+
   countTable <- DESeqDataSetFromMatrix(
     countData=data,
     colData=coldata,
     design=~mainFactor
   )
+
   result <- DESeq(countTable)
+
   res <- results(result)
+  
   dd = res[with(res,order(padj)),]
 
 	write.csv(
