@@ -4,7 +4,7 @@ import argparse
 def main(args):
 
     samfile = pysam.AlignmentFile(args.infile, "rb")
-    outfile = pysam.AlignmentFile(args.out, "w", template=samfile)
+    outfile = pysam.AlignmentFile(args.out, "wb", template=samfile)
 
     n = 0
 
