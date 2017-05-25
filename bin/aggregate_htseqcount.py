@@ -12,25 +12,26 @@ import argparse
 
 def main(args):
 
-    data = zip(args.files,args.samples)
-
     results = {}
-    genes = []
+    genes = set()
     samples = []
 
-    for d in data:
+    for d in zip(args.files,args.samples):
 
-        sample_data = pandas.read_table(d[0], sep='\t', index_col=0,header=None)
-
-        sample_data = sample_data.ix[sample_data.index.map(lambda x: x.find('__')==-1)]
-        genes += sample_data.index.tolist()
+        sample_data = pandas.read_table(d[0], sep='\t',header=None)
+        sample_data = sample_data[~sample_data[0].str.contains('__')]
+        genes.update(sample_data[0].tolist())
+        sample_data.index = sample_data[0]
+        sample_data = sample_data[1]
         results[d[1]] = sample_data
         samples.append(d[1])
+
+    genes = list(genes)
 
     all_data = pandas.DataFrame(index = list(set(genes)), columns = samples)
     all_data.values.fill(0.0)
     for s, d in results.items():
-        all_data[s] = d
+        all_data[s] = d.ix[genes]
     all_data.to_csv(args.out)
 
 
