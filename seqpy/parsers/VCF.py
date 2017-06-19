@@ -73,13 +73,20 @@ class SomaticMutations(object):
 
         for variant in vcf_in:
             variant_info = SnpEffInfo(variant.INFO)
+            is_indel=False
+
+            if len(variant.REF) > 1 or len(variant.ALT[0])>1:
+                is_indel=True
+
             if variant_info.has_ann():
                 temp = variant_info.get_most_deleterious_effect()
-                if 'frameshift_variant' in temp:
+                if 'frameshift_variant' in temp or \
+                        '5_prime_UTR_premature_start_codon_gain_variant' in temp:
 
                     temp = ['frameshift_variant']
 
                 elif 'missense_variant' in temp or \
+                        'stop_lost' in temp or \
                         'protein_protein_contact' in temp or \
                         'structural_interaction_variant' in temp:
 
@@ -90,8 +97,9 @@ class SomaticMutations(object):
 
                     temp = ['truncating']
 
-                elif 'inframe_indel' in temp or \
+                elif is_indel or 'inframe_indel' in temp or \
                         'disruptive_inframe_insertion' in temp or \
+                        'disruptive_inframe_deletion' in temp or \
                         'conservative_inframe_insertion' in temp or \
                         'conservative_inframe_deletion' in temp:
 
@@ -103,6 +111,7 @@ class SomaticMutations(object):
                     temp = ['splice_variant']
 
                 elif 'intron_variant' in temp or \
+                        'intergenic_region' in temp or \
                         'non_coding_exon_variant' in temp or \
                         '3_prime_UTR_variant' in temp or \
                         'synonymous_variant' in temp or \
@@ -111,12 +120,18 @@ class SomaticMutations(object):
                         'upstream_gene_variant' in temp or \
                         'non_coding_transcript_exon_variant' in temp or \
                         'splice_region_variant' in temp or \
-                        'sequence_feature' in temp:
+                        'sequence_feature' in temp or \
+                        'initiator_codon_variant' in temp or \
+                        'stop_retained_variant' in temp or \
+                        'intragenic_variant' in temp:
 
                     temp = ['synonymous']
+                else:
+                    print temp
+                    import pdb; pdb.set_trace()
 
-                if len(temp) > 1:
-                    print 'Too many annotations!'
+                if len(temp) != 1:
+                    print 'Too many or few annotations!'
                     sys.exit()
 
                 mutation_type = temp
@@ -133,7 +148,7 @@ class SomaticMutations(object):
 
     def save_deleterious_types(self, outfile):
         fout = open(outfile, 'w')
-        fout.write('sample,total,missense,splice_variant,frameshift_variant,truncating,synonymous,indel\n')
+        fout.write('sample,total,missense,splice_variant,frameshift_variant,truncating,indel,synonymous\n')
         for i in self.samples:
             fout.write(i + ',' + str(len(self.data[i])))
 
@@ -155,15 +170,15 @@ class SomaticMutations(object):
 
             fout.write(',' + str(self.data[i].count('truncating')))
 
+            # indel
+
+            fout.write(',' + str(self.data[i].count('indel')))
+
             # synonymous
 
             fout.write(',' + str(
                 self.data[i].count('synonymous')
             ))
-
-            # indel
-
-            fout.write(',' + str(self.data[i].count('indel')))
             fout.write('\n')
 
         fout.close()

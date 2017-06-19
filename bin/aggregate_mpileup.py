@@ -12,39 +12,7 @@ import sys
 import pandas
 import os
 import argparse
-
-
-class Pileup:
-    """
-    store data on genomic variations (snps and small indels)
-    """
-
-    def __init__(self, filename, pileup_data):
-
-        self.seq_id = pileup_data[0]
-        self.position = int(pileup_data[1])
-        self.reference_base = pileup_data[2]
-        self.coverage = int(pileup_data[3])
-
-        #read bases and qualities are not printed if coverage is 0
-
-        if self.coverage==0:
-            self.read_bases = ''
-            self.read_qualities = ''
-        else:
-            if len(pileup_data)!=6:
-                print pileup_data
-                print filename
-                sys.exit('Did not find 6 columns in pileup data!')
-            self.read_bases = pileup_data[4]
-            self.read_qualities = pileup_data[5]
-
-    def base_count(self, base):
-        count = self.read_bases.count(base.lower()) + self.read_bases.count(base.upper())
-        if (base.upper() == self.reference_base) or (base.lower() == self.reference_base):
-            count += self.read_bases.count('.')
-            count += self.read_bases.count(',')
-        return count
+from seqpy.parsers import Mpileup
 
 def parse_vcf(vcf_file):
 
@@ -52,35 +20,15 @@ def parse_vcf(vcf_file):
 
     vcf_in = vcf.Reader(open(vcf_file,'r'))
     for v in vcf_in:
-
-        alternative_alleles = []
-
-        if len(v.REF)==1:
-
-            for alternative in v.ALT:
-                if len(alternative)>1:
-                    alternative = str(alternative)[1::]
-
-                    alternative = '+' + str(len(alternative)) + alternative
-
-                    alternative_alleles.append(alternative)
-                else:
-                    alternative_alleles.append(str(alternative))
-        else:
-            reference = str(v.REF)[1::]
-
-            reference = '-' + str(len(reference)) + reference
-
-            alternative_alleles.append(reference)
-
-        mutant_sites[str(v.CHROM) + '-' + str(v.POS)] = alternative_alleles
+        allele = Mpileup.PileupVcfAllele(vcf_variant=v)
+        mutant_sites[str(v.CHROM) + '-' + str(v.POS)] = allele.alternative_alleles
     return mutant_sites
 
 def get_filter_site_set(args,pileup_files,mutant_sites,coverage,support):
 
     for pileup_file, sample in pileup_files:
         for line in open(pileup_file,'r').readlines():
-            pileup = Pileup(pileup_file,line.rstrip().split('\t'))
+            pileup = Mpileup.Pileup(line.rstrip())
 
             site = str(pileup.seq_id) + '-' + str(pileup.position)
 

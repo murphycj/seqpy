@@ -17,8 +17,9 @@ def main(args):
 
 
     data = pandas.read_csv(args.infile,index_col=0)
-    print args.group1+args.group2
-    data = data[args.group1+args.group2]
+    if not args.nocls:
+        print args.group1+args.group2
+        data = data[args.group1+args.group2]
 
     samples = data.columns.tolist()
     genes = data.index.tolist()
@@ -40,33 +41,40 @@ def main(args):
     fout.write(gct)
     fout.close()
 
-    fout = open(args.prefix + '.cls','w')
-    fout.write(str(len(args.group1) + len(args.group2)) + ' 2 1\n')
-    fout.write('# ' + args.phenotypes[0] + ' ' + args.phenotypes[1] + '\n')
-    fout.write(' '.join(['0']*len(args.group1)) + ' ' + ' '.join(['1']*len(args.group2)) + '\n')
-    fout.close()
+    if not args.nocls:
+        fout = open(args.prefix + '.cls','w')
+        fout.write(str(len(args.group1) + len(args.group2)) + ' 2 1\n')
+        fout.write('# ' + args.phenotypes[0] + ' ' + args.phenotypes[1] + '\n')
+        fout.write(' '.join(['0']*len(args.group1)) + ' ' + ' '.join(['1']*len(args.group2)) + '\n')
+        fout.close()
 
 
 parser = argparse.ArgumentParser(description='Creates a gct and cls file from a expression file')
 parser.add_argument('--infile',type=str,help='CSV file containing expresion data',required=True)
 parser.add_argument(
+    '--nocls',
+    action='store_true',
+    help='Do no produce a CLS file',
+    required=False
+)
+parser.add_argument(
     '--group1',
     type=str,
-    required=True,
+    required=False,
     nargs='+',
     help='Space-delimited list of sample names'
 )
 parser.add_argument(
     '--group2',
     type=str,
-    required=True,
+    required=False,
     nargs='+',
     help='Space-delimited list of sample names'
 )
 parser.add_argument(
     '--phenotypes',
     type=str,
-    required=True,
+    required=False,
     nargs='+',
     help='Space separated name for the groups/phenotype (e.g. WT,MUT), same order and group1 and group2'
 )
