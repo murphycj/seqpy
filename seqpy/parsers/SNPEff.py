@@ -41,7 +41,7 @@ class SnpEffAnnotation:
                     'missense','synonymous','indel','splicesite','frameshift',
                     'truncating','nonsense','other'],
             rankings=[
-                ['nonsense','missense','truncating','frameshift','splicesite','indel','synonymous','UTR_variant','other'],
+                ['nonsense','missense','truncating','frameshift','splicesite','indel','synonymous','UTR_variant','other']
             ]):
         """
         classes:
@@ -54,6 +54,8 @@ class SnpEffAnnotation:
         """
 
         self.classes = classes
+        if 'other' not in self.classes:
+            self.classes.append('other')
         self.rankings = rankings
         self.ontology = pickle.load(
             open(
@@ -98,7 +100,7 @@ class SnpEffAnnotation:
 
             # nonsense
 
-            'stop_gained':['nonsense','missense','truncating'],
+            'stop_gained':['nonsense','truncating','missense'],
 
             # UTR
 
@@ -118,10 +120,10 @@ class SnpEffAnnotation:
 
             # other
 
-            'structural_variant':['other','synonymous'],
-            'functional_variant':['other','synonymous'],
-            'sequence_feature':['other','synonymous'],
-            'protein_protein_contact':['other','synonymous']
+            'structural_variant':['synonymous','other'],
+            'functional_variant':['synonymous','other'],
+            'sequence_feature':['synonymous','other'],
+            'protein_protein_contact':['synonymous','other']
         }
 
     def classify(self,annotations):
@@ -136,7 +138,11 @@ class SnpEffAnnotation:
             classes = []
             if name in self.classification and \
                     any([x in self.classes for x in self.classification[name]]):
-                return self.classification[name]
+                for i in self.classification[name]:
+                    if i in self.classes:
+                        return [i]
+                print 'WARN! Don\'t know what to classify %s as, using \'other\'!' % name
+                return ['other']
             if name == 'sequence_variant':
                 print 'WARN! Reached sequence_variant in classification for %s!' % aa
                 return [name]

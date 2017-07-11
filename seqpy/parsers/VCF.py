@@ -58,7 +58,7 @@ class SummarizeVCFAnnotation(object):
     def save_summary(self, outfile):
         fout = open(outfile, 'w')
         fout.write(
-            '%s,%s,%s,\n' %
+            '%s,%s,%s\n' %
             (
                 'sample',
                 'total',
