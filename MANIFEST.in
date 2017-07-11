@@ -1,0 +1,2 @@
+include README.md
+include seqpy/data/070717.ontology.pickle

@@ -5,7 +5,6 @@ Combine the "Log.final.out" files from STAR mapping into one CSV file
 
 import argparse
 import pandas
-from crimson import flagstat
 import glob
 import os
 
