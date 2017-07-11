@@ -54,8 +54,6 @@ class SnpEffAnnotation:
         """
 
         self.classes = classes
-        if 'other' not in self.classes:
-            self.classes.append('other')
         self.rankings = rankings
         self.ontology = pickle.load(
             open(
@@ -109,6 +107,7 @@ class SnpEffAnnotation:
             # splice site
 
             'splicing_variant':['splicesite','synonymous'],
+            'splice_region_variant':['synonymous'],
 
             # frameshift
 
@@ -142,6 +141,10 @@ class SnpEffAnnotation:
                     if i in self.classes:
                         return [i]
                 print 'WARN! Don\'t know what to classify %s as, using \'other\'!' % name
+
+                if 'other' not in self.classes:
+                    self.classes.append('other')
+
                 return ['other']
             if name == 'sequence_variant':
                 print 'WARN! Reached sequence_variant in classification for %s!' % aa
