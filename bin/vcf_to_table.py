@@ -5,12 +5,18 @@ has varying context) and with samples as columns to indicate which samples
 have which mutations
 """
 
-import vcf
+import re
 import argparse
-from seqpy.parsers import SnpEffInfo, VAF
+
+import vcf
+from seqpy.parsers.SNPEff import SnpEffInfo
+from seqpy.parsers.VCF import VAF
 
 
 def main(args):
+
+    cc = re.compile('^ENST')
+
     vcf_in = vcf.Reader(open(args.vcf, 'r'))
     fout = open(args.out, 'w')
 
@@ -60,6 +66,10 @@ def main(args):
                         has_right_annotation = True
 
                 if not has_right_annotation:
+                    continue
+
+            if not args.NET:
+                if not cc.findall(ann.feature_id):
                     continue
 
             # if has effect that is desired, print it
@@ -176,6 +186,12 @@ parser.add_argument(
     '--cosmic',
     action='store_true',
     help='ID column contains COSMIC mutations',
+    required=False
+)
+parser.add_argument(
+    '--NET',
+    action='store_true',
+    help='Include non-ensembl transcripts',
     required=False
 )
 parser.add_argument(
