@@ -7,6 +7,7 @@ have which mutations
 
 import re
 import argparse
+from collections import Counter
 
 import vcf
 from seqpy.parsers.SNPEff import SnpEffInfo
@@ -56,6 +57,16 @@ def main(args):
             if sample.called:
                 n += 1
 
+        # handles the case that there are multiple annotations for a
+        # gene even though using only canonical
+
+        annotations = {}
+        for ann in vinfo.ann:
+            if ann.gene_id not in annotations:
+                annotations[ann.gene_id] = '&'.join(ann.annotation)
+            else:
+                annotations[ann.gene_id] += '&' + '&'.join(ann.annotation)
+
         for ann in vinfo.ann:
 
             if (not args.everything):
@@ -72,6 +83,9 @@ def main(args):
                 if not cc.findall(ann.feature_id):
                     continue
 
+            if ann.gene_id not in annotations:
+                continue
+
             # if has effect that is desired, print it
 
             fout.write(
@@ -83,8 +97,10 @@ def main(args):
                 ann.feature_id + ',' +
                 ann.basepair_change + ',' +
                 ann.aminoacid_change + ',' +
-                '&'.join(ann.annotation)
+                annotations[ann.gene_id]
             )
+
+            del annotations[ann.gene_id]
 
             if args.cosmic:
                 fout.write(',' + cosmic + ',' + str(n))
