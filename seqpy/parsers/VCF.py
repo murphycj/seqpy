@@ -99,7 +99,7 @@ class VAF:
             tmp.remove(None)
         self.freq = self.sample.data.AF
         self.mutant = tmp[1]
-        self.reference = sum(tmp)
+        self.reference = sum(tmp) - self.mutant
 
     def _parse_varscan(self):
         tmp = self.sample.data.FREQ
