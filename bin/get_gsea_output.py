@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 from seqpy import parsers
+import glob
 
 
 def main(args):
@@ -10,6 +11,11 @@ def main(args):
         os.mkdir('tmpGSEA')
         os.system('unzip ' + args.indir + ' -d tmpGSEA')
         g = parsers.GSEA('./tmpGSEA', args.out)
+    elif args.targz:
+        os.mkdir('tmpGSEA')
+        os.system('tar -xf ' + args.indir + ' -C tmpGSEA')
+        directory = glob.glob('./tmpGSEA/*')
+        g = parsers.GSEA(directory, args.out)
     else:
         g = parsers.GSEA(args.indir, args.out)
 
@@ -44,6 +50,12 @@ parser.add_argument(
     '--zip',
     action='store_true',
     help='(Optional) The provided GSEA output directory is a zip file ',
+    required=False
+)
+parser.add_argument(
+    '--targz',
+    action='store_true',
+    help='(Optional) The provided GSEA output directory is a tar.gz file ',
     required=False
 )
 parser.add_argument(

@@ -1,29 +1,61 @@
 library(gplots)
+library(RColorBrewer)
 source("/Users/charlesmurphy/Desktop/Research/lib/seqpy/lib/gsea.R")
 
-plot_pathway <- function(data,threshold=0.1,gmt,pathway,samples,prefix,main,margins=c(8,12),cexRow=0.25,cexCol=1.2,log_data=T,scale="row") {
+plot_pathway <- function(
+		data,
+		threshold=0.1,
+		gmt,
+		pathway,
+		samples,
+		prefix,
+		main,
+		margins=c(8,12),
+		cexRow=0.25,
+		Rowv=T,
+		Colv=T,
+		cexCol=1.2,
+		log_data=T,
+		scale="row") {
 	data <- as.matrix(read.csv(data,header=TRUE,row.names=1,check.names=F))
 
 	gmt <- parse_gmt(gmt=gmt)
 
 	genes = gmt[[pathway]]
-	genes.2 <- c()
-	for (i in 1:length(genes)) {
-		if (genes[i] %in% row.names(data)) {
-			genes.2 <- c(genes.2,genes[i])
-		}
-	}
+	genes <- genes[genes %in% row.names(data)]
+
+	colors <- NULL
 
 	if (length(samples)==0) {
 		samples = colnames(data)
+	} else {
+		if (length(samples) > 2) {
+			colors_ref <- brewer.pal(length(samples),"Spectral")
+		} else {
+			colors_ref <- c("red","blue")
+		}
+		colors <- as.character(unlist(samples))
+		labels <- names(samples)
+		sample_order <- c()
+		for (i in 1:length(colors_ref)) {
+			colors[colors %in% samples[[labels[i]]]] <- colors_ref[i]
+			sample_order <- c(sample_order,samples[[labels[i]]])
+		}
+
+		data <- data[genes,sample_order]
 	}
 
-	data <- data[genes.2,samples]
 	data[data<=threshold] <- 0.0
 	data <- data[rowSums(data)>0,]
 
 	if (log_data) {
 		data = log(data+0.1)
+	}
+
+	if ((Rowv==F) & (Colv==F)) {
+		dendrogram="none"
+	} else {
+		dendrogram="both"
 	}
 
 	png(paste(prefix,".png",sep=""),width=1000,height=1000)
@@ -38,6 +70,10 @@ plot_pathway <- function(data,threshold=0.1,gmt,pathway,samples,prefix,main,marg
 		col=greenred(75),
 		key.title="Gene expression",
 		main=main,
+		Rowv=Rowv,
+		Colv=Colv,
+		ColSideColors=colors,
+		dendrogram=dendrogram,
 		distfun=function(x) as.dist(1-cor(t(x),method="spearman"))
 	)
 	dev.off()
