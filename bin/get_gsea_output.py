@@ -15,7 +15,8 @@ def main(args):
         os.mkdir('tmpGSEA')
         os.system('tar -xf ' + args.indir + ' -C tmpGSEA')
         directory = glob.glob('./tmpGSEA/*')
-        g = parsers.GSEA(directory, args.out)
+        assert len(directory)==1,"did not find 1 directory!"
+        g = parsers.GSEA(directory[0], args.out)
     else:
         g = parsers.GSEA(args.indir, args.out)
 
