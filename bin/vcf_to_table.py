@@ -16,7 +16,7 @@ from seqpy.parsers.VCF import VAF
 
 def main(args):
 
-    cc = re.compile('^ENST')
+    cc = re.compile('^ENS')
 
     vcf_in = vcf.Reader(open(args.vcf, 'r'))
     fout = open(args.out, 'w')
