@@ -31,7 +31,7 @@ parser.add_argument(
 parser.add_argument(
     '--round',
     required=False,
-    action='store_true'
+    action='store_true',
     help='Round to nearest integer'
 )
 args = parser.parse_args()
