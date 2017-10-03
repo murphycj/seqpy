@@ -35,8 +35,10 @@ def aggregate_summary(args):
             data = pandas.read_table(fname[0], sep='\t', index_col=0)
 
             if suffix=='sample_statistics':
-
-                results[suffix][sample] = data.ix['sample_' + sample]
+                try:
+                    results[suffix][sample] = data.ix['sample_' + sample]
+                except:
+                    results[suffix][sample] = data.ix['sample_test']
             elif suffix=='sample_interval_summary':
                 results[suffix][sample] = data
             elif suffix=='sample_interval_statistics':
@@ -68,8 +70,10 @@ def aggregate_summary(args):
     for c in ['_total_cvg','_mean_cvg','_granular_Q1','_granular_median','_granular_Q3']:
         r = {}
         for sample, data in results['sample_interval_summary'].items():
-
-            r[sample] = data[sample + c]
+            try:
+                r[sample] = data[sample + c]
+            except:
+                r[sample] = data['test' + c]
 
         all_data = pandas.DataFrame(r)
         all_data.to_csv(args.prefix + '.sample_interval_summary.' + c + '.csv')

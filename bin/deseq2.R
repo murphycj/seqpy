@@ -15,6 +15,15 @@ main <- function(args) {
   group2 <- strsplit(args$G2,",")[[1]]
   phenotype <- strsplit(args$phenotype,",")[[1]]
 
+  sink(paste(args$outDir,"/samples_compared.txt",sep=""))
+  cat("Group1\n")
+  cat(paste(group1,collapse=", "))
+  cat("\n")
+  cat("Group2\n")
+  cat(paste(group2,collapse=", "))
+  cat("\n")
+  sink()
+
   data <- read.csv(args$counts, header=T, row.names=1, check.names=FALSE)
   data <- data[,c(group1, group2)]
   data[data<args$minCount] <- 0
@@ -39,7 +48,7 @@ main <- function(args) {
   result <- DESeq(countTable)
 
   res <- results(result)
-  
+
   dd = res[with(res,order(padj)),]
 
 	write.csv(
