@@ -6,7 +6,7 @@ def main(args):
     insert_data = CollectInsertSizeMetrics(args.file)
 
     if args.round:
-        print int(insert_data.metrics[args.type])
+        print int(float(insert_data.metrics[args.type]))
     else:
         print insert_data.metrics[args.type]
 
