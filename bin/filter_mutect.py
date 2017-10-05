@@ -53,6 +53,8 @@ def main(args):
                 AD = v.samples[normal_index].data.AD
                 if sum(AD) < args.min_normal:
                     continue
+                if AD[1] >= args.max_normal_support:
+                    continue
             else:
                 print 'Site does not have AD attr'
                 print v
@@ -125,6 +127,13 @@ parser.add_argument(
     type=int,
     help='Min coverage in normal (default 12)',
     default=12,
+    required=False
+)
+parser.add_argument(
+    '--max_normal_support',
+    type=int,
+    help='Max alt allele support in normal (default 3).',
+    default=3,
     required=False
 )
 parser.add_argument(
