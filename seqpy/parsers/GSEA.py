@@ -11,7 +11,7 @@ class GSEA():
 
     """
 
-    def __init__(self, directory='', name=''):
+    def __init__(self, directory='', name='', phenotype1='up', phenotype2='down'):
         """
         directory: the directory containing the full GSEA result files
 
@@ -20,6 +20,8 @@ class GSEA():
         """
 
         self.directory = directory
+        self.phenotype1 = phenotype1
+        self.phenotype2 = phenotype2
 
     def _check_for_nas(self, table):
         """
@@ -48,44 +50,36 @@ class GSEA():
 
         return table
 
-    def parse_pathway_excel(self, reverse=False, leadingEdge=False,
+    def parse_pathway_excel(self, leadingEdge=False,
                             leadingEdgeGenes=False, allGenes=False):
-        self.up_pathways = None
-        self.down_pathways = None
+        self.first_pathways = None
+        self.second_pathways = None
 
-        if reverse:
-            up = glob.glob(self.directory + '/gsea_report_for_na_neg_*xls')
-        else:
-            up = glob.glob(self.directory + '/gsea_report_for_na_pos_*xls')
+        first = glob.glob(self.directory + '/gsea_report_for*_' + self.phenotype1 + '_*xls')
+        second = glob.glob(self.directory + '/gsea_report_for*_' + self.phenotype2 + '_*xls')
 
-        assert len(up) == 1, "No up-regulated pathway files found"
+        assert len(first) == 1, "No file found for phenotype 1!"
+        assert len(second) == 1, "No file found for phenotype 1!"
 
-        if reverse:
-            down = glob.glob(self.directory + '/gsea_report_for_na_pos_*xls')
-        else:
-            down = glob.glob(self.directory + '/gsea_report_for_na_neg_*xls')
+        self.first_pathways = pandas.read_table(first[0], sep='\t')
+        del self.first_pathways['Unnamed: 11']
 
-        assert len(down) == 1, "No down-regulated pathway files found"
+        self.first_pathways = self._check_for_nas(self.first_pathways)
 
-        self.up_pathways = pandas.read_table(up[0], sep='\t')
-        del self.up_pathways['Unnamed: 11']
+        self.first_pathways = self.first_pathways.fillna('')
 
-        self.up_pathways = self._check_for_nas(self.up_pathways)
+        self.second_pathways = pandas.read_table(second[0], sep='\t')
+        del self.second_pathways['Unnamed: 11']
 
-        self.up_pathways = self.up_pathways.fillna('')
+        self.second_pathways = self._check_for_nas(self.second_pathways)
 
-        self.down_pathways = pandas.read_table(down[0], sep='\t')
-        del self.down_pathways['Unnamed: 11']
-
-        self.down_pathways = self._check_for_nas(self.down_pathways)
-
-        self.down_pathways = self.down_pathways.fillna('')
+        self.second_pathways = self.second_pathways.fillna('')
 
         num_in_leading_edge = []
         all_genes = []
         leading_edge_genes = []
 
-        for pathway in self.down_pathways['NAME'].tolist():
+        for pathway in self.second_pathways['NAME'].tolist():
             pathway = os.path.join(self.directory, pathway + '.xls')
             if not os.path.exists(pathway):
                 n = 'NA'
@@ -103,17 +97,17 @@ class GSEA():
             all_genes.append(tmp_all_genes)
 
         if leadingEdge:
-            self.down_pathways['NUM_IN_LEADING_EDGE'] = num_in_leading_edge
+            self.second_pathways['NUM_IN_LEADING_EDGE'] = num_in_leading_edge
         if leadingEdgeGenes:
-            self.down_pathways['LEADING_EDGE_GENES'] = leading_edge_genes
+            self.second_pathways['LEADING_EDGE_GENES'] = leading_edge_genes
         if allGenes:
-            self.down_pathways['ALL_GENES'] = all_genes
+            self.second_pathways['ALL_GENES'] = all_genes
 
         num_in_leading_edge = []
         all_genes = []
         leading_edge_genes = []
 
-        for pathway in self.up_pathways['NAME'].tolist():
+        for pathway in self.first_pathways['NAME'].tolist():
             pathway = os.path.join(self.directory, pathway + '.xls')
             if not os.path.exists(pathway):
                 n = 'NA'
@@ -131,44 +125,44 @@ class GSEA():
             all_genes.append(tmp_all_genes)
 
         if leadingEdge:
-            self.up_pathways['NUM_IN_LEADING_EDGE'] = num_in_leading_edge
+            self.first_pathways['NUM_IN_LEADING_EDGE'] = num_in_leading_edge
         if leadingEdgeGenes:
-            self.up_pathways['LEADING_EDGE_GENES'] = leading_edge_genes
+            self.first_pathways['LEADING_EDGE_GENES'] = leading_edge_genes
         if allGenes:
-            self.up_pathways['ALL_EDGE_GENES'] = all_genes
+            self.first_pathways['ALL_EDGE_GENES'] = all_genes
 
-    def write_to_excel(self, outfile, up_tab_name='up', down_tab_name='down'):
+    def write_to_excel(self, outfile, phenotype1='up', phenotype2='down'):
 
-        assert len(up_tab_name) <= 31, 'name of excel tab has to be less than 31 characters'
-        assert len(down_tab_name) <= 31, 'name of excel tab has to be less than 31 characters'
+        assert len(phenotype1) <= 31, 'name of excel tab has to be less than 31 characters'
+        assert len(phenotype2) <= 31, 'name of excel tab has to be less than 31 characters'
 
         workbook = xlsxwriter.Workbook(outfile)
 
-        worksheetname = up_tab_name
+        worksheetname = phenotype1
         sheet = workbook.add_worksheet(worksheetname)
         col = 0
-        for ii in self.up_pathways.columns.tolist():
+        for ii in self.first_pathways.columns.tolist():
             sheet.write(0,col,ii)
             col+=1
         row = 1
-        for ii in self.up_pathways.index:
+        for ii in self.first_pathways.index:
             col = 0
-            for jj in self.up_pathways.columns:
-                sheet.write(row,col,self.up_pathways.ix[ii][jj])
+            for jj in self.first_pathways.columns:
+                sheet.write(row,col,self.first_pathways.ix[ii][jj])
                 col+=1
             row+=1
 
-        worksheetname = down_tab_name
+        worksheetname = phenotype2
         sheet = workbook.add_worksheet(worksheetname)
         col = 0
-        for ii in self.down_pathways.columns.tolist():
+        for ii in self.second_pathways.columns.tolist():
             sheet.write(0,col,ii)
             col+=1
         row = 1
-        for ii in self.down_pathways.index:
+        for ii in self.second_pathways.index:
             col = 0
-            for jj in self.down_pathways.columns:
-                sheet.write(row,col,self.down_pathways.ix[ii][jj])
+            for jj in self.second_pathways.columns:
+                sheet.write(row,col,self.second_pathways.ix[ii][jj])
                 col+=1
             row+=1
 
@@ -191,50 +185,50 @@ class GSEAs():
         for i in range(0,len(self.gseas)):
             sheet = workbook.add_worksheet(self.gseas[i].name + ' up')
 
-            up_pathways = self.gseas[i].up_pathways
-            up_pathways = up_pathways[up_pathways['NOM p-val']<=pval]
-            up_pathways = up_pathways[up_pathways['FDR q-val']<=FDR]
+            first_pathways = self.gseas[i].first_pathways
+            first_pathways = first_pathways[first_pathways['NOM p-val']<=pval]
+            first_pathways = first_pathways[first_pathways['FDR q-val']<=FDR]
 
             col = 0
-            for ii in up_pathways.columns.tolist():
+            for ii in first_pathways.columns.tolist():
                 sheet.write(0,col,ii)
                 col+=1
             row = 1
-            for ii in up_pathways.index:
+            for ii in first_pathways.index:
                 col = 0
-                for jj in up_pathways.columns:
-                    sheet.write(row,col,up_pathways.ix[ii][jj])
+                for jj in first_pathways.columns:
+                    sheet.write(row,col,first_pathways.ix[ii][jj])
                     col+=1
                 row+=1
             #col = 0
             #row = 1
             #sheet.write(0,col,"NAME")
-            #for ii in up_pathways["NAME"]:
+            #for ii in first_pathways["NAME"]:
             #    sheet.write(row,col,ii)
             #    row+=1
 
             sheet = workbook.add_worksheet(self.gseas[i].name + ' down')
 
-            down_pathways = self.gseas[i].down_pathways
-            down_pathways = down_pathways[down_pathways['NOM p-val']<=pval]
-            down_pathways = down_pathways[down_pathways['FDR q-val']<=FDR]
+            second_pathways = self.gseas[i].second_pathways
+            second_pathways = second_pathways[second_pathways['NOM p-val']<=pval]
+            second_pathways = second_pathways[second_pathways['FDR q-val']<=FDR]
 
             col = 0
-            for ii in down_pathways.columns.tolist():
+            for ii in second_pathways.columns.tolist():
                 sheet.write(0,col,ii)
                 col+=1
             row = 1
-            for ii in down_pathways.index:
+            for ii in second_pathways.index:
                 col = 0
-                for jj in down_pathways.columns:
-                    sheet.write(row,col,down_pathways.ix[ii][jj])
+                for jj in second_pathways.columns:
+                    sheet.write(row,col,second_pathways.ix[ii][jj])
                     col+=1
                 row+=1
 
             #col = 0
             #row = 1
             #sheet.write(0,col,"NAME")
-            #for ii in down_pathways["NAME"]:
+            #for ii in second_pathways["NAME"]:
             #    sheet.write(row,col,ii)
             #    row+=1
 
@@ -253,16 +247,16 @@ class GSEAs():
                 if i==j:
                     continue
 
-                up_pathways = self.gseas[j].up_pathways
-                up_pathways = up_pathways[up_pathways['NOM p-val']<=pval]
-                up_pathways = up_pathways[up_pathways['FDR q-val']<=FDR]
-                not_i += up_pathways['NAME'].tolist()
+                first_pathways = self.gseas[j].first_pathways
+                first_pathways = first_pathways[first_pathways['NOM p-val']<=pval]
+                first_pathways = first_pathways[first_pathways['FDR q-val']<=FDR]
+                not_i += first_pathways['NAME'].tolist()
 
-            up_pathways = self.gseas[i].up_pathways
-            up_pathways = up_pathways[up_pathways['NOM p-val']<=pval]
-            up_pathways = up_pathways[up_pathways['FDR q-val']<=FDR]
+            first_pathways = self.gseas[i].first_pathways
+            first_pathways = first_pathways[first_pathways['NOM p-val']<=pval]
+            first_pathways = first_pathways[first_pathways['FDR q-val']<=FDR]
 
-            unique_to_i = list(set(up_pathways['NAME'].tolist()).difference(set(not_i)))
+            unique_to_i = list(set(first_pathways['NAME'].tolist()).difference(set(not_i)))
 
             col = 0
             row = 1
@@ -280,16 +274,16 @@ class GSEAs():
                 if i==j:
                     continue
 
-                down_pathways = self.gseas[j].down_pathways
-                down_pathways = down_pathways[down_pathways['NOM p-val']<=pval]
-                down_pathways = down_pathways[down_pathways['FDR q-val']<=FDR]
-                not_i += down_pathways["NAME"].tolist()
+                second_pathways = self.gseas[j].second_pathways
+                second_pathways = second_pathways[second_pathways['NOM p-val']<=pval]
+                second_pathways = second_pathways[second_pathways['FDR q-val']<=FDR]
+                not_i += second_pathways["NAME"].tolist()
 
-            down_pathways = self.gseas[i].down_pathways
-            down_pathways = down_pathways[down_pathways['NOM p-val']<=pval]
-            down_pathways = down_pathways[down_pathways['FDR q-val']<=FDR]
+            second_pathways = self.gseas[i].second_pathways
+            second_pathways = second_pathways[second_pathways['NOM p-val']<=pval]
+            second_pathways = second_pathways[second_pathways['FDR q-val']<=FDR]
 
-            unique_to_i = list(set(down_pathways["NAME"].tolist()).difference(set(not_i)))
+            unique_to_i = list(set(second_pathways["NAME"].tolist()).difference(set(not_i)))
 
             col = 0
             row = 1

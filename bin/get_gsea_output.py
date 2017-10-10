@@ -10,32 +10,34 @@ def main(args):
     if args.zip:
         os.mkdir('tmpGSEA')
         os.system('unzip ' + args.indir + ' -d tmpGSEA')
-        g = parsers.GSEA('./tmpGSEA', args.out)
+        g = parsers.GSEA('./tmpGSEA', args.out, args.phenotype1, args.phenotype2)
     elif args.targz:
         os.mkdir('tmpGSEA')
         os.system('tar -xf ' + args.indir + ' -C tmpGSEA')
         directory = glob.glob('./tmpGSEA/*')
         assert len(directory)==1,"did not find 1 directory!"
-        g = parsers.GSEA(directory[0], args.out)
+        g = parsers.GSEA(directory[0], args.out, args.phenotype1, args.phenotype2)
     else:
-        g = parsers.GSEA(args.indir, args.out)
+        g = parsers.GSEA(args.indir, args.out, args.phenotype1, args.phenotype2)
 
-    if args.reverse:
-        g.parse_pathway_excel(
-            reverse=True,
-            leadingEdge=args.leadingEdge,
-            leadingEdgeGenes=args.leadingEdgeGenes,
-            allGenes=args.allGenes
-        )
+
+    if args.phenotype_1_tab_name is not None:
+        phenotype1 = args.phenotype_1_tab_name
     else:
-        g.parse_pathway_excel(
-            reverse=False,
-            leadingEdge=args.leadingEdge,
-            leadingEdgeGenes=args.leadingEdgeGenes,
-            allGenes=args.allGenes
-        )
+        phenotype1 = args.phenotype1
 
-    g.write_to_excel(args.out + '.xlsx')
+    if args.phenotype_2_tab_name is not None:
+        phenotype2 = args.phenotype_2_tab_name
+    else:
+        phenotype2 = args.phenotype2
+
+    g.parse_pathway_excel(
+        leadingEdge=args.leadingEdge,
+        leadingEdgeGenes=args.leadingEdgeGenes,
+        allGenes=args.allGenes
+    )
+
+    g.write_to_excel(args.out + '.xlsx',phenotype1=phenotype1,phenotype2=phenotype2)
 
     if args.zip:
         os.system('rm -rf tmpGSEA')
@@ -60,22 +62,31 @@ parser.add_argument(
     required=False
 )
 parser.add_argument(
-    '--reverse',
-    action='store_true',
-    help='(Optional) By default the gsea_report_for_na_neg_* file ' +
-         'regarded at up-regulate genes',
+    '--phenotype1',
+    type=str,
+    required=True,
+    default='up',
+    help='Phenotype 1 (default up)'
+)
+parser.add_argument(
+    '--phenotype2',
+    type=str,
+    required=True,
+    default='down',
+    help='Phenotype 2 (default down)'
+)
+parser.add_argument(
+    '--phenotype_1_tab_name',
+    type=str,
+    default=None,
+    help='(Optional) Tab name for first phenotype results.',
     required=False
 )
 parser.add_argument(
-    '--up_tab_name',
+    '--phenotype_2_tab_name',
     type=str,
-    help='(Option) Tab name for up-regualted genes.',
-    required=False
-)
-parser.add_argument(
-    '--down_tab_name',
-    type=str,
-    help='(Optional) Tab name for down-regualted genes.',
+    default=None,
+    help='(Optional) Tab name for second phenotype results.',
     required=False
 )
 parser.add_argument(
