@@ -64,14 +64,14 @@ parser.add_argument(
 parser.add_argument(
     '--phenotype1',
     type=str,
-    required=True,
+    required=False,
     default='up',
     help='Phenotype 1 (default up)'
 )
 parser.add_argument(
     '--phenotype2',
     type=str,
-    required=True,
+    required=False,
     default='down',
     help='Phenotype 2 (default down)'
 )
