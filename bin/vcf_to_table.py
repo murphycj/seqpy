@@ -98,7 +98,7 @@ def main(args):
                 ann.basepair_change + ',' +
                 ann.aminoacid_change + ',' +
                 annotations[ann.gene_id] + ',' +
-                v.FILTER
+                ';'.join(v.FILTER)
             )
 
             del annotations[ann.gene_id]
