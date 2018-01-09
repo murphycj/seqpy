@@ -22,9 +22,9 @@ def main(args):
     fout = open(args.out, 'w')
 
     if args.cosmic:
-        fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,COSMIC,SAMPLE COUNT')
+        fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,COSMIC,SAMPLE COUNT,FLAGS')
     else:
-        fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,SAMPLE COUNT')
+        fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,SAMPLE COUNT,FLAGS')
 
     for sample in vcf_in.samples:
         fout.write(',' + sample)
@@ -97,7 +97,8 @@ def main(args):
                 ann.feature_id + ',' +
                 ann.basepair_change + ',' +
                 ann.aminoacid_change + ',' +
-                annotations[ann.gene_id]
+                annotations[ann.gene_id] + ',' +
+                v.FILTER
             )
 
             del annotations[ann.gene_id]

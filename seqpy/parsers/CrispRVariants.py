@@ -24,7 +24,7 @@ class CrispRVariants(object):
         quntification_file = glob.glob(self.outdir + '/*mutationEfficiency.txt')
 
         if len(quntification_file) != 1:
-            print 'Error in mutationEfficiency.txt file.'
+            print('Error in mutationEfficiency.txt file.')
             sys.exit()
 
         d = pandas.read_table(

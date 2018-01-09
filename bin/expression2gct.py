@@ -18,7 +18,6 @@ def main(args):
 
     data = pandas.read_csv(args.infile,index_col=0)
     if not args.nocls:
-        print args.group1+args.group2
         data = data[args.group1+args.group2]
 
     samples = data.columns.tolist()

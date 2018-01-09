@@ -19,7 +19,7 @@ class SummarizeVCFAnnotation(object):
         self.data = None
         self.samples = None
         if annotation is None:
-            print 'ERROR! Provide annotation when initializing SummarizeVCFAnnotation!'
+            print('ERROR! Provide annotation when initializing SummarizeVCFAnnotation!')
             exit()
         self.annotation = annotation
 
@@ -46,8 +46,8 @@ class SummarizeVCFAnnotation(object):
                 else:
                     mutation_classification = 'synonymous'
 
-                print 'ERROR! Variant at chromosome %s, position %s missing INFO!' % (variant.CHROM,variant.POS)
-                print 'Marking its annotation as %s.' % mutation_classification
+                print('ERROR! Variant at chromosome %s, position %s missing INFO!' % (variant.CHROM,variant.POS))
+                print('Marking its annotation as %s.' % mutation_classification)
 
             for s in variant.samples:
                 if s.called and s.sample in self.data:

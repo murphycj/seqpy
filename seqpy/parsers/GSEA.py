@@ -31,8 +31,8 @@ class GSEA():
         if sum(table['NOM p-val'].isnull()) > 0:
             indices = table.index.tolist()
 
-            print 'NAs found for NOM p-val for significant pathways in:'
-            print '\t\t' + self.directory
+            print('NAs found for NOM p-val for significant pathways in:')
+            print('\t\t' + self.directory)
 
             for i in range(0, len(table.index)):
                 if pandas.isnull(table.ix[indices[i]]['NOM p-val']):

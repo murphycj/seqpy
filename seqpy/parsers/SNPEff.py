@@ -140,21 +140,21 @@ class SnpEffAnnotation:
                 for i in self.classification[name]:
                     if i in self.classes:
                         return [i]
-                print 'WARN! Don\'t know what to classify %s as, using \'other\'!' % name
+                print('WARN! Don\'t know what to classify %s as, using \'other\'!' % name)
 
                 if 'other' not in self.classes:
                     self.classes.append('other')
 
                 return ['other']
             if name == 'sequence_variant':
-                print 'WARN! Reached sequence_variant in classification for %s!' % aa
+                print('WARN! Reached sequence_variant in classification for %s!' % aa)
                 return [name]
             try:
                 for j in self.ontology[name]:
                     classes += get_next(aa,j)
             except KeyError:
-                print 'ERROR! Could not find %s in ontology!' % name
-                print 'Exiting...'
+                print('ERROR! Could not find %s in ontology!' % name)
+                print('Exiting...')
                 exit()
             return classes
 
@@ -168,8 +168,8 @@ class SnpEffAnnotation:
         if len(classes)==1:
             return classes[0]
         elif len(classes)==0:
-            print 'ERROR! No mutation class found!'
-            print 'Exiting...'
+            print('ERROR! No mutation class found!')
+            print('Exiting...')
             exit()
 
         # find the variant annotation classification that has the highest
@@ -189,8 +189,8 @@ class SnpEffAnnotation:
                         classes.remove(pair_j)
 
             if previous_count == len(classes):
-                print 'ERROR! Don\'t know how to rank %s and %s!' % (pair_i,pair_j)
-                print 'Exiting...'
+                print('ERROR! Don\'t know how to rank %s and %s!' % (pair_i,pair_j))
+                print('Exiting...')
                 exit()
             previous_count = len(classes)
 

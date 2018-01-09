@@ -49,7 +49,7 @@ class Pileup(object):
             self.read_qualities = ''
         else:
             if len(pileup_data)!=6:
-                print pileup_data
+                print(pileup_data)
                 sys.exit('Did not find 6 columns in pileup data!')
             self.read_bases = pileup_data[4]
             self.read_qualities = pileup_data[5]
