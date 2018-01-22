@@ -68,9 +68,20 @@ def main(args):
 
         if hasattr(v.samples[tumor_index].data, 'AD'):
             AD = v.samples[tumor_index].data.AD
-            freq = float(v.samples[tumor_index].data.AF)
-            if AD[1] < args.AD or sum(AD) < args.min_tumor or freq < args.freq:
-                continue
+            if len(AD) > 2:
+                freq = v.samples[tumor_index].data.AF
+
+                if sum(AD) < args.min_tumor:
+                    continue
+
+                for i in range(1,len(AD)):
+                    if AD[i] >= args.AD or freq[i-1] >= args.freq:
+                        break
+            else:
+                AD = v.samples[tumor_index].data.AD
+                freq = float(v.samples[tumor_index].data.AF)
+                if AD[1] < args.AD or sum(AD) < args.min_tumor or freq < args.freq:
+                    continue
         else:
             print 'Site does not have AD attr'
             print v
