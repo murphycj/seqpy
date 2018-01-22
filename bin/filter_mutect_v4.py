@@ -12,9 +12,18 @@ def main(args):
     vcf_out = vcf.Writer(open(args.out, 'w'), vcf_in)
 
     for v in vcf_in:
-        keep = False
 
-        if float(v.INFO['TLOD']) < args.tlod:
+        TLOD = v.INFO['TLOD']
+        keep = False
+        if type(TLOD)==list:
+            for i in TLOD:
+                if float(i) >= args.tlod:
+                    keep=True
+        else:
+            if float(TLOD) >= args.tlod:
+                keep=True
+
+        if not keep:
             continue
 
         if not args.nonpaired:
