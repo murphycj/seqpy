@@ -29,8 +29,9 @@ def main(args):
     header += ',SAMPLE COUNT'
 
     for sample in vcf_in.samples:
-        fout.write(',' + sample)
-    fout.write('\n')
+        header += ',' + sample
+
+    fout.write(header + '\n')
 
     for v in vcf_in:
 
