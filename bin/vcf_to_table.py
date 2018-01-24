@@ -21,10 +21,12 @@ def main(args):
     vcf_in = vcf.Reader(open(args.vcf, 'r'))
     fout = open(args.out, 'w')
 
+    header = 'CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT'
     if args.cosmic:
-        fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,COSMIC,SAMPLE COUNT,FLAGS')
-    else:
-        fout.write('CHROM,POS,REF,ALT,GENE,TRANSCRIPT,BASE PAIR CHANGE,AMINO ACID CHANGE,EFFECT,SAMPLE COUNT,FLAGS')
+        header += ',COSMIC'
+    if args.filter:
+        header += ',FLAGS'
+    header += ',SAMPLE COUNT'
 
     for sample in vcf_in.samples:
         fout.write(',' + sample)
@@ -88,6 +90,11 @@ def main(args):
 
             # if has effect that is desired, print it
 
+            if args.filter:
+                filter_flags = ',' + ';'.join(v.FILTER)
+            else:
+                filter_flags = ''
+
             fout.write(
                 str(v.CHROM) + ',' +
                 str(v.POS) + ',' +
@@ -97,16 +104,17 @@ def main(args):
                 ann.feature_id + ',' +
                 ann.basepair_change + ',' +
                 ann.aminoacid_change + ',' +
-                annotations[ann.gene_id] + ',' +
-                ';'.join(v.FILTER)
+                annotations[ann.gene_id]
             )
 
             del annotations[ann.gene_id]
 
             if args.cosmic:
-                fout.write(',' + cosmic + ',' + str(n))
-            else:
-                fout.write(',' + str(n))
+                fout.write(',' + cosmic)
+            if args.filter:
+                fout.write(',' + filter_flags)
+
+            fout.write(',' + str(n))
 
             for sample in v.samples:
 
@@ -209,6 +217,12 @@ parser.add_argument(
     '--NET',
     action='store_true',
     help='Include non-ensembl transcripts',
+    required=False
+)
+parser.add_argument(
+    '--filter',
+    action='store_true',
+    help='Include filter flags.',
     required=False
 )
 parser.add_argument(
