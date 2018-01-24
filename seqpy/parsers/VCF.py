@@ -97,7 +97,7 @@ class VAF:
         tmp = self.sample.data.AD
         while None in tmp:
             tmp.remove(None)
-        self.freq = self.sample.data.AF
+        self.freq = tmp[1] / float(sum(tmp))
         self.mutant = tmp[1]
         self.reference = sum(tmp) - self.mutant
 
