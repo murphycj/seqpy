@@ -23,7 +23,7 @@ def main(args):
         if type(TLOD) == list:
             TLOD = TLOD[0]
 
-        if float(TLOD) >= args.tlod:
+        if float(TLOD) < args.tlod:
             continue
 
         if not args.nonpaired:
