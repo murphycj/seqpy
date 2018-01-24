@@ -20,6 +20,9 @@ def main(args):
             print(v)
             exit()
 
+        if type(TLOD) == list:
+            TLOD = TLOD[0]
+
         if float(TLOD) >= args.tlod:
             continue
 
@@ -30,6 +33,9 @@ def main(args):
                 print('multiple NLOD!!')
                 print(v)
                 exit()
+
+            if type(NLOD) == list:
+                NLOD = NLOD[0]
 
             if float(NLOD) < args.nlod:
                 continue
