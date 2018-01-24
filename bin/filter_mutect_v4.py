@@ -14,30 +14,24 @@ def main(args):
     for v in vcf_in:
 
         TLOD = v.INFO['TLOD']
-        keep = False
-        if type(TLOD)==list:
-            for i in TLOD:
-                if float(i) >= args.tlod:
-                    keep=True
-        else:
-            if float(TLOD) >= args.tlod:
-                keep=True
 
-        if not keep:
+        if len(TLOD) > 2:
+            print('multiple TLOD!!')
+            print(v)
+            exit()
+
+        if float(TLOD) >= args.tlod:
             continue
 
         if not args.nonpaired:
             NLOD = v.INFO['NLOD']
-            keep = False
-            if type(NLOD)==list:
-                for i in NLOD:
-                    if float(i)>=args.nlod:
-                        keep=True
-            else:
-                if float(NLOD) >= args.nlod:
-                    keep=True
 
-            if not keep:
+            if len(NLOD) > 2:
+                print('multiple NLOD!!')
+                print(v)
+                exit()
+
+            if float(NLOD) < args.nlod:
                 continue
 
         # get sample index
@@ -51,40 +45,50 @@ def main(args):
                 normal_index = n
             n += 1
 
-        # check minimum coverage in normal
+        # check coverage in normal
 
         if not args.nonpaired:
             if hasattr(v.samples[normal_index].data, 'AD'):
                 AD = v.samples[normal_index].data.AD
-                if sum(AD) < args.min_normal:
-                    continue
-                if AD[1] >= args.max_normal_support:
-                    continue
-            else:
-                print 'Site does not have AD attr'
-                print v
+                coverage = float(sum(AD))
 
-        # check minimum coverage in tumor
+                if coverage < args.min_normal:
+                    continue
+
+                if len(AD) > 2:
+                    print('multiple AD!!')
+                    print(v)
+                    exit()
+                else:
+                    if args.max_normal_support!=-1 and AD[1] >= args.max_normal_support:
+                        continue
+                    if float(AD[1])/coverage >= args.max_normal_af:
+                        continue
+            else:
+                print('Site does not have AD attr')
+                print(v)
+                exit()
+
+        # check coverage in tumor
 
         if hasattr(v.samples[tumor_index].data, 'AD'):
             AD = v.samples[tumor_index].data.AD
+            coverage = float(sum(AD))
+
+            if coverage < args.min_tumor:
+                continue
+
             if len(AD) > 2:
-                freq = v.samples[tumor_index].data.AF
-
-                if sum(AD) < args.min_tumor:
-                    continue
-
-                for i in range(1,len(AD)):
-                    if AD[i] >= args.AD or freq[i-1] >= args.freq:
-                        break
+                print('multiple AD!!')
+                print(v)
+                exit()
             else:
-                AD = v.samples[tumor_index].data.AD
-                freq = float(v.samples[tumor_index].data.AF)
-                if AD[1] < args.AD or sum(AD) < args.min_tumor or freq < args.freq:
+                if AD[1] < args.AD or AD[1]/coverage < args.freq:
                     continue
         else:
-            print 'Site does not have AD attr'
-            print v
+            print('Site does not have AD attr')
+            print(v)
+            exit()
 
         vcf_out.write_record(v)
     vcf_out.close()
@@ -148,8 +152,15 @@ parser.add_argument(
 parser.add_argument(
     '--max_normal_support',
     type=int,
-    help='Max alt allele support in normal (default 3).',
-    default=3,
+    help='Max alt allele support in normal (default -1).',
+    default=-1,
+    required=False
+)
+parser.add_argument(
+    '--max_normal_af',
+    type=float,
+    help='Max alt allele AF in normal (default 0.03).',
+    default=0.03,
     required=False
 )
 parser.add_argument(
