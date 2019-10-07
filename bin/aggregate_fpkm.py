@@ -18,7 +18,7 @@ def main(args):
 
     for d in data:
 
-        fpkm_data = pandas.read_table(d[0], sep='\t')
+        fpkm_data = pandas.read_csv(d[0], sep='\t')
         temp2 = pandas.DataFrame(fpkm_data[['tracking_id','FPKM']])
 
         if args.duplicates=='random':
