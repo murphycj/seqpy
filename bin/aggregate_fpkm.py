@@ -15,13 +15,10 @@ def main(args):
     data = zip(args.files,args.samples)
 
     results = {}
-    genes = []
-    samples = []
 
     for d in data:
 
         fpkm_data = pandas.read_table(d[0], sep='\t')
-        genes += fpkm_data['tracking_id'].tolist()
         temp2 = pandas.DataFrame(fpkm_data[['tracking_id','FPKM']])
 
         if args.duplicates=='random':
@@ -35,17 +32,12 @@ def main(args):
         else:
             print 'Nothing done!'
             sys.exit()
-        samples.append(d[1])
-
-    genes = list(set(genes))
 
     for s, fpkm_data in results.items():
         results[s] = fpkm_data.ix[genes]
 
-    all_fpkm_data = pandas.DataFrame(index = list(set(genes)), columns = samples)
-    all_fpkm_data.values.fill(0.0)
-    for s, fpkm_data in results.items():
-        all_fpkm_data[s] = fpkm_data
+    all_fpkm_data = pd.DataFrame(all_fpkm_data)
+    all_fpkm_data.fillna(0.0)
     all_fpkm_data.to_csv(args.out)
 
 
