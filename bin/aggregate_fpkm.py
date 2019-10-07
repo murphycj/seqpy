@@ -13,7 +13,6 @@ import argparse
 def main(args):
 
     data = zip(args.files,args.samples)
-
     results = {}
 
     for d in data:
@@ -34,7 +33,7 @@ def main(args):
             sys.exit()
 
     for s, fpkm_data in results.items():
-        results[s] = fpkm_data.ix[genes]
+        results[s] = fpkm_data.to_dict()
 
     all_fpkm_data = pd.DataFrame(all_fpkm_data)
     all_fpkm_data.fillna(0.0)
