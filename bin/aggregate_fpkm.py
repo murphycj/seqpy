@@ -36,7 +36,7 @@ def main(args):
     for s, fpkm_data in results.items():
         results[s] = fpkm_data.to_dict()
 
-    all_fpkm_data = pd.DataFrame(all_fpkm_data)
+    all_fpkm_data = pd.DataFrame(results)
     all_fpkm_data.fillna(0.0)
     all_fpkm_data.to_csv(args.out)
 
