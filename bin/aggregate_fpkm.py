@@ -5,10 +5,11 @@ from different samples into one file
 """
 
 import sys
-import pandas
-import numpy as np
 import os
 import argparse
+
+import pandas as pd
+import numpy as np
 
 def main(args):
 
@@ -17,8 +18,8 @@ def main(args):
 
     for d in data:
 
-        fpkm_data = pandas.read_csv(d[0], sep='\t')
-        temp2 = pandas.DataFrame(fpkm_data[['tracking_id','FPKM']])
+        fpkm_data = pd.read_csv(d[0], sep='\t')
+        temp2 = pd.DataFrame(fpkm_data[['tracking_id','FPKM']])
 
         if args.duplicates=='random':
             temp2.drop_duplicates(subset='tracking_id', take_last=True, inplace=True)
