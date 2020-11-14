@@ -5,34 +5,28 @@ into one file
 """
 
 import sys
-import pandas
+import pandas as pd
 import numpy as np
 import os
 import argparse
 
 def main(args):
+    data = pd.DataFrame()
 
-    results = {}
-    genes = set()
-    samples = []
+    for fpath, name in zip(args.files,args.samples):
 
-    for d in zip(args.files,args.samples):
-
-        sample_data = pandas.read_table(d[0], sep='\t',header=None)
+        sample_data = pd.read_csv(fpath, sep='\t',header=None)
         sample_data = sample_data[~sample_data[0].str.contains('__')]
-        genes.update(sample_data[0].tolist())
         sample_data.index = sample_data[0]
-        sample_data = sample_data[1]
-        results[d[1]] = sample_data
-        samples.append(d[1])
+        sample_data = sample_data[[1]]
+        sample_data.columns = [name]
 
-    genes = list(genes)
+        data = pd.concat([data, sample_data], axis=1)
 
-    all_data = pandas.DataFrame(index = list(set(genes)), columns = samples)
-    all_data.values.fill(0.0)
-    for s, d in results.items():
-        all_data[s] = d.ix[genes]
-    all_data.to_csv(args.out)
+    data = data.fillna(0)
+    data.index.name = None
+    
+    data.to_csv(args.out)
 
 
 parser = argparse.ArgumentParser(description='Aggregates output from HTSeq-count')
